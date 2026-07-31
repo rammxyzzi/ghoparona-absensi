@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Presensi - SMKNU</title>
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-main: #12181f;
+            --card-bg: #1a222d;
+            --primary: #00f2fe;
+            --primary-hover: #00c6ff;
+            --border-color: #2b3648;
+            --text-main: #ffffff;
+            --text-muted: #8a99ad;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning-bg: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        /* Banner Informasi Maintenance */
+        .update-banner {
+            display: none;
+            width: 100%;
+            max-width: 480px;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--warning-bg);
+            color: var(--warning-bg);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+        }
+
+        .update-banner.show {
+            display: flex;
+        }
+
+        .update-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--warning-bg);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background-color: var(--bg-main);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 13px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-tab-btn {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            border: none;
+            border-radius: 10px;
+            color: #000000;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--border-color) !important;
+            color: var(--text-muted) !important;
+        }
+
+        /* Toggle Maintenance Styling */
+        .maintenance-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-main);
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 18px;
+        }
+
+        .maintenance-info p {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .maintenance-info span {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #374151;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--danger);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .admin-unlock-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        #splashScreen.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-logo {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--primary);
+            text-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+            opacity: 0;
+            transform: scale(0.7);
+            animation: logoAppear 2s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s;
+        }
+
+        .splash-loader {
+            margin-top: 15px;
+            font-size: 14px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            animation: pulseText 1.5s infinite ease-in-out;
+        }
+
+        @keyframes logoAppear {
+            0% { opacity: 0; transform: scale(0.6); filter: blur(8px); }
+            50% { opacity: 1; transform: scale(1.1); filter: blur(0px); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            width: calc(100% - 32px);
+            max-width: 440px;
+            background-color: #232a31;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-body h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .toast-body p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen">
+        <div class="splash-logo">SMKNU</div>
+        <div class="splash-loader">Memuat aplikasi...</div>
+    </div>
+
+    <!-- Banner Update Mode -->
+    <div id="updateBanner" class="update-banner">
+        <div class="update-spinner"></div>
+        <span>Sistem Sedang Update, Mohon Tunggu Sebentar...</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <button class="admin-unlock-btn" onclick="openAdminWithPIN()" title="Masuk Mode Admin">🔒</button>
+
+        <div class="header">
+            <h1>Sistem Presensi</h1>
+            <p>SMKNU Online Presence System</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button id="btnTabPresensi" class="tab-btn active" onclick="switchTab('presensiTab')">Presensi</button>
+            <button id="btnTabAdmin" class="tab-btn admin-tab-btn" onclick="switchTab('adminTab')">Dashboard Admin</button>
+        </div>
+
+        <!-- TAB PRESENSI -->
+        <div id="presensiTab" class="tab-content active">
+            <form id="presensiForm" onsubmit="submitPresensi(event)">
+                <div class="form-group">
+                    <label>PILIH KELAS</label>
+                    <select id="selectKelas" class="form-control" onchange="loadSiswaByKelas()" required>
+                        <option value="">-- Pilih Kelas --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>PILIH SISWA</label>
+                    <select id="selectSiswa" class="form-control" required disabled>
+                        <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>KETERANGAN PRESENSI</label>
+                    <select id="selectStatus" class="form-control" required>
+                        <option value="Hadir">Hadir</option>
+                        <option value="Izin">Izin</option>
+                        <option value="Sakit">Sakit</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="btnKirim" class="btn">KIRIM PRESENSI</button>
+            </form>
+        </div>
+
+        <!-- TAB ADMIN -->
+        <div id="adminTab" class="tab-content">
+            <!-- Kontrol Mode Maintenance -->
+            <div class="maintenance-box">
+                <div class="maintenance-info">
+                    <p>Mode Maintenance / Update</p>
+                    <span>Kunci fitur absen untuk murid</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggleMaintenance" onchange="toggleMaintenanceMode(this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <hr style="border-color: var(--border-color); margin: 20px 0;">
+
+            <div class="form-group">
+                <label>TAMBAH KELAS BARU</label>
+                <input type="text" id="inputNamaKelas" class="form-control" placeholder="Contoh: XII RPL 1">
+                <button type="button" class="btn" style="margin-top: 8px;" onclick="tambahKelas()">SIMPAN KELAS</button>
+            </div>
+
+            <hr style="border-color: var(--border-color); margin: 20px 0;">
+
+            <div class="form-group">
+                <label>PILIH KELAS UNTUK SISWA</label>
+                <select id="selectKelasAdmin" class="form-control">
+                    <option value="">-- Pilih Kelas --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>NAMA LENGKAP SISWA</label>
+                <input type="text" id="inputNamaSiswa" class="form-control" placeholder="Contoh: Ahmad Rizki">
+                <button type="button" class="btn" style="margin-top: 8px;" onclick="tambahSiswa()">SIMPAN SISWA</button>
+            </div>
+
+            <hr style="border-color: var(--border-color); margin: 20px 0;">
+            <button type="button" class="btn btn-danger" onclick="lockAdmin()">KUNCI & KELUAR ADMIN</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotif" class="toast-notification">
+        <div class="toast-icon" id="toastIcon">✓</div>
+        <div class="toast-body">
+            <h4 id="toastTitle">Presensi Berhasil!</h4>
+            <p id="toastMessage">Data tersimpan & info dikirim via WhatsApp.</p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://lwzeobrzpzjxiywdwuws.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3emVvYnJ6cHpqeGl5d2R3dXdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0ODE2NDgsImV4cCI6MjEwMTA1NzY0OH0.kSQ3yvm2JwpPo4qRkRDxmEpkwrzpktGYBU0HAg3PXx4";
+
+        const WASENDER_API_KEY = "973177ee012529e6e32c60b4882ac5378d3813cb1d4cf7f65013d3ad3bbaf72c";
+        const WASENDER_RECEIVER = "6283872851796@s.whatsapp.net";
+
+        const ADMIN_PIN = "1234";
+        let isSystemMaintenance = false;
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                if (splash) splash.classList.add('hide');
+            }, 2000);
+
+            loadKelas();
+            fetchMaintenanceStatus();
+            subscribeRealtimeMaintenance();
+        });
+
+        // 1. Cek Status Maintenance dari Supabase
+        async function fetchMaintenanceStatus() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('is_maintenance')
+                    .eq('id', 'system')
+                    .single();
+
+                if (data) {
+                    applyMaintenanceUI(data.is_maintenance);
+                }
+            } catch (err) {
+                console.error("Gagal mengambil status maintenance:", err);
+            }
+        }
+
+        // 2. Realtime Listener
+        function subscribeRealtimeMaintenance() {
+            supabaseClient
+                .channel('public:settings')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'settings' }, payload => {
+                    if (payload.new && payload.new.id === 'system') {
+                        applyMaintenanceUI(payload.new.is_maintenance);
+                    }
+                })
+                .subscribe();
+        }
+
+        // Terapkan Perubahan UI berdasarkan Status Maintenance
+        function applyMaintenanceUI(status) {
+            isSystemMaintenance = status;
+            const updateBanner = document.getElementById('updateBanner');
+            const btnKirim = document.getElementById('btnKirim');
+            const toggle = document.getElementById('toggleMaintenance');
+
+            if (toggle) toggle.checked = status;
+
+            if (status) {
+                if (updateBanner) updateBanner.classList.add('show');
+                if (btnKirim) {
+                    btnKirim.disabled = true;
+                    btnKirim.innerText = 'SISTEM SEDANG UPDATE...';
+                }
+            } else {
+                if (updateBanner) updateBanner.classList.remove('show');
+                if (btnKirim) {
+                    btnKirim.disabled = false;
+                    btnKirim.innerText = 'KIRIM PRESENSI';
+                }
+            }
+        }
+
+        // Toggle dari Panel Admin
+        async function toggleMaintenanceMode(isMaintenance) {
+            try {
+                const { error } = await supabaseClient
+                    .from('settings')
+                    .update({ is_maintenance: isMaintenance })
+                    .eq('id', 'system');
+
+                if (error) throw error;
+
+                showToast('Status Diperbarui', isMaintenance ? 'Mode maintenance AKTIF.' : 'Mode maintenance NONAKTIF.');
+            } catch (err) {
+                alert("Gagal mengubah mode maintenance: " + err.message);
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            if (tabId === 'presensiTab') {
+                document.getElementById('btnTabPresensi').classList.add('active');
+            } else if (tabId === 'adminTab') {
+                document.getElementById('btnTabAdmin').classList.add('active');
+            }
+        }
+
+        function openAdminWithPIN() {
+            const pinInput = prompt("Masukkan PIN Admin:");
+            if (pinInput === ADMIN_PIN) {
+                document.getElementById('btnTabAdmin').style.display = "block";
+                switchTab('adminTab');
+                showToast('Akses Diterima', 'Selamat datang di Dashboard Admin.');
+            } else if (pinInput !== null) {
+                alert("PIN Salah! Akses ditolak.");
+            }
+        }
+
+        function lockAdmin() {
+            document.getElementById('btnTabAdmin').style.display = "none";
+            switchTab('presensiTab');
+            showToast('Admin Dikunci', 'Anda telah keluar dari mode admin.');
+        }
+
+        function showToast(title, message, isError = false) {
+            const toast = document.getElementById('toastNotif');
+            const toastIcon = document.getElementById('toastIcon');
+
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+
+            if (isError) {
+                toastIcon.innerText = "✕";
+                toastIcon.style.color = "var(--danger)";
+                toastIcon.style.background = "rgba(239, 68, 68, 0.15)";
+            } else {
+                toastIcon.innerText = "✓";
+                toastIcon.style.color = "var(--success)";
+                toastIcon.style.background = "rgba(16, 185, 129, 0.15)";
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        async function loadKelas() {
+            try {
+                const { data, error } = await supabaseClient.from('kelas').select('*');
+                if (error) return console.error('Error fetching kelas:', error.message);
+
+                const selectKelas = document.getElementById('selectKelas');
+                const selectKelasAdmin = document.getElementById('selectKelasAdmin');
+
+                let options = '<option value="">-- Pilih Kelas --</option>';
+
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        options += `<option value="${item.id}">${item.nama_kelas}</option>`;
+                    });
+                }
+
+                selectKelas.innerHTML = options;
+                selectKelasAdmin.innerHTML = options;
+            } catch (err) {
+                console.error("Supabase Error:", err);
+            }
+        }
+
+        async function loadSiswaByKelas() {
+            const kelasId = document.getElementById('selectKelas').value;
+            const selectSiswa = document.getElementById('selectSiswa');
+
+            if (!kelasId) {
+                selectSiswa.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+                selectSiswa.disabled = true;
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient.from('siswa').select('*').eq('kelas_id', kelasId);
+                if (error) return alert("Gagal memuat siswa: " + error.message);
+
+                let options = '';
+                if (data && data.length > 0) {
+                    options = '<option value="">-- Pilih Siswa --</option>';
+                    data.forEach(item => {
+                        options += `<option value="${item.id}">${item.nama_siswa}</option>`;
+                    });
+                    selectSiswa.disabled = false;
+                } else {
+                    options = '<option value="">-- Belum ada siswa di kelas ini --</option>';
+                    selectSiswa.disabled = true;
+                }
+                selectSiswa.innerHTML = options;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function tambahKelas() {
+            const namaKelas = document.getElementById('inputNamaKelas').value.trim();
+            if (!namaKelas) return alert('Nama kelas tidak boleh kosong!');
+
+            const { error } = await supabaseClient.from('kelas').insert([{ nama_kelas: namaKelas }]);
+            if (error) {
+                alert('Gagal menambah kelas: ' + error.message);
+            } else {
+                document.getElementById('inputNamaKelas').value = '';
+                showToast('Berhasil!', 'Kelas baru telah ditambahkan.');
+                loadKelas();
+            }
+        }
+
+        async function tambahSiswa() {
+            const kelasId = document.getElementById('selectKelasAdmin').value;
+            const namaSiswa = document.getElementById('inputNamaSiswa').value.trim();
+
+            if (!kelasId || !namaSiswa) return alert('Pilih kelas dan isi nama siswa!');
+
+            const { error } = await supabaseClient.from('siswa').insert([{ kelas_id: kelasId, nama_siswa: namaSiswa }]);
+            if (error) {
+                alert('Gagal menambah siswa: ' + error.message);
+            } else {
+                document.getElementById('inputNamaSiswa').value = '';
+                showToast('Berhasil!', 'Siswa baru telah ditambahkan.');
+            }
+        }
+
+        async function submitPresensi(e) {
+            e.preventDefault();
+
+            if (isSystemMaintenance) {
+                showToast('Update Sistem', 'Aplikasi sedang dalam pembaruan. Silakan coba lagi nanti.', true);
+                return;
+            }
+
+            const btnKirim = document.getElementById('btnKirim');
+            btnKirim.disabled = true;
+            btnKirim.innerText = 'MEMPROSES...';
+
+            const selectKelas = document.getElementById('selectKelas');
+            const selectSiswa = document.getElementById('selectSiswa');
+            const status = document.getElementById('selectStatus').value;
+
+            const namaKelas = selectKelas.options[selectKelas.selectedIndex].text;
+            const namaSiswa = selectSiswa.options[selectSiswa.selectedIndex].text;
+
+            // Format tanggal lokal (YYYY-MM-DD)
+            const sekarang = new Date();
+            const year = sekarang.getFullYear();
+            const month = String(sekarang.getMonth() + 1).padStart(2, '0');
+            const day = String(sekarang.getDate()).padStart(2, '0');
+            const tanggalStr = `${year}-${month}-${day}`;
+            const waktuStr = sekarang.toLocaleTimeString('id-ID');
+
+            try {
+                // 1. Cek apakah siswa sudah absen hari ini
+                const { data: cekAbsen, error: errorCek } = await supabaseClient
+                    .from('presensi')
+                    .select('id')
+                    .eq('nama', namaSiswa)
+                    .eq('kelas', namaKelas)
+                    .eq('tanggal', tanggalStr);
+
+                if (errorCek) throw errorCek;
+
+                if (cekAbsen && cekAbsen.length > 0) {
+                    showToast('Gagal Absen!', `${namaSiswa} sudah melakukan absen hari ini.`, true);
+                    btnKirim.disabled = false;
+                    btnKirim.innerText = 'KIRIM PRESENSI';
+                    return;
+                }
+
+                // 2. Simpan presensi hari ini
+                const { error: errorInsert } = await supabaseClient.from('presensi').insert([{
+                    nama: namaSiswa,
+                    kelas: namaKelas,
+                    tanggal: tanggalStr,
+                    status: status,
+                    keterangan: '-',
+                    waktu: waktuStr
+                }]);
+
+                if (errorInsert) throw errorInsert;
+
+                // 3. Hitung akumulasi total presensi
+                const { data: totalSiswa, error: errorTotal } = await supabaseClient
+                    .from('presensi')
+                    .select('status')
+                    .eq('nama', namaSiswa)
+                    .eq('kelas', namaKelas);
+
+                let countHadir = 0, countIzin = 0, countSakit = 0;
+
+                if (totalSiswa) {
+                    totalSiswa.forEach(row => {
+                        if (row.status === 'Hadir') countHadir++;
+                        else if (row.status === 'Izin') countIzin++;
+                        else if (row.status === 'Sakit') countSakit++;
+                    });
+                }
+
+                // Play Audio Success
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                audio.play().catch(() => {});
+
+                // 4. Kirim Pesan WhatsApp
+                if (WASENDER_API_KEY) {
+                    const pesan = `*PRESENSI SISWA SMKNU*\n\n` +
+                                  `Nama: *${namaSiswa}*\n` +
+                                  `Kelas: *${namaKelas}*\n` +
+                                  `Keterangan Hari Ini: *${status}*\n` +
+                                  `Waktu: ${waktuStr} (${tanggalStr})\n\n` +
+                                  `----------------------------------\n` +
+                                  `*REKAP AKUMULASI ABSENSI SISWA*\n` +
+                                  `• Hadir: *${countHadir}* kali\n` +
+                                  `• Izin: *${countIzin}* kali\n` +
+                                  `• Sakit: *${countSakit}* kali`;
+
+                    await fetch('https://wasenderapi.com/api/send-text', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${WASENDER_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            to: WASENDER_RECEIVER,
+                            text: pesan
+                        })
+                    }).catch(err => console.error("Error mengirim WA:", err));
+                }
+
+                showToast('Presensi Berhasil!', `${namaSiswa} (${namaKelas}) - ${status}`);
+                document.getElementById('presensiForm').reset();
+                document.getElementById('selectSiswa').disabled = true;
+
+            } catch (err) {
+                alert("Terjadi kesalahan: " + err.message);
+            }
+
+            btnKirim.disabled = false;
+            btnKirim.innerText = 'KIRIM PRESENSI';
+        }
+    </script>
+</body>
+</html>
