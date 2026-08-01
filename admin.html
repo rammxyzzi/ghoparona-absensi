@@ -21,6 +21,20 @@
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; }
         h2, h3 { color: #2c3e50; margin-bottom: 15px; }
+
+        /* --- MAINTENANCE BANNER CARD --- */
+        .maintenance-card {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .maintenance-info { font-size: 14px; color: #856404; font-weight: 600; }
+
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: #fdfdfd; padding: 20px; border: 1px solid #eef2f5; border-radius: 8px; margin-bottom: 30px; }
         .form-group { display: flex; flex-direction: column; gap: 6px; }
         .form-group.full-width { grid-column: 1 / -1; }
@@ -30,6 +44,8 @@
         .btn { padding: 10px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
         .btn-primary { background-color: #3498db; color: white; }
         .btn-danger { background-color: #e74c3c; color: white; padding: 6px 12px; font-size: 12px; }
+        .btn-warning { background-color: #f39c12; color: white; }
+        .btn-success { background-color: #2ecc71; color: white; }
         .btn-logout { background-color: #95a5a6; color: white; }
         
         .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid #eef2f5; margin-bottom: 30px; }
@@ -64,6 +80,14 @@
         <div class="header">
             <h2>Panel Admin Setting</h2>
             <button id="btnLogout" class="btn btn-logout">Logout Admin</button>
+        </div>
+
+        <!-- MAINTENANCE CONTROL CARD -->
+        <div class="maintenance-card">
+            <div class="maintenance-info">
+                Status Sistem Absensi: <span id="maintenanceStatusText" style="font-weight: bold;">Memuat...</span>
+            </div>
+            <button id="btnToggleMaintenance" class="btn btn-warning">Ubah Status</button>
         </div>
 
         <h3>Tambah Master Data Siswa</h3>
@@ -120,21 +144,16 @@
     <script type="module">
         import { supabase } from './supabase.js';
 
-        const PIN_ADMIN_RAHASIA = "1234"; // Pastikan dalam bentuk teks (string)
+        const PIN_ADMIN_RAHASIA = "1234"; 
+        let isMaintenanceMode = false;
 
         document.getElementById('formLoginAdmin').addEventListener('submit', async (e) => {
             e.preventDefault();
             const pinInput = document.getElementById('pinAdminInput').value.trim();
 
             if (String(pinInput) === String(PIN_ADMIN_RAHASIA)) {
-                // Sembunyikan overlay login
                 document.getElementById('loginOverlay').style.display = 'none';
-                
-                // Tampilkan container panel
-                const panel = document.getElementById('adminPanel');
-                panel.classList.add('active');
-                
-                // Load data dari Supabase
+                document.getElementById('adminPanel').classList.add('active');
                 await loadAllData();
             } else {
                 alert("PIN Admin Salah!");
@@ -145,9 +164,48 @@
         document.getElementById('btnLogout').addEventListener('click', () => location.reload());
 
         async function loadAllData() {
+            await getMaintenanceStatus();
             await loadMasterSiswa();
             await loadAbsensi();
         }
+
+        // --- LOGIKA MAINTENANCE ---
+        async function getMaintenanceStatus() {
+            const { data } = await supabase.from('settings').select('value').eq('key', 'maintenance').single();
+            const statusText = document.getElementById('maintenanceStatusText');
+            const btnToggle = document.getElementById('btnToggleMaintenance');
+
+            if (data && data.value === 'true') {
+                isMaintenanceMode = true;
+                statusText.innerText = "🛠️ MAINTENANCE (Siswa Tidak Bisa Absen)";
+                statusText.style.color = "#c0392b";
+                btnToggle.innerText = "Matikan Maintenance (Aktifkan Absensi)";
+                btnToggle.className = "btn btn-success";
+            } else {
+                isMaintenanceMode = false;
+                statusText.innerText = "✅ AKTIF (Siswa Bisa Absen)";
+                statusText.style.color = "#27ae60";
+                btnToggle.innerText = "Aktifkan Maintenance";
+                btnToggle.className = "btn btn-warning";
+            }
+        }
+
+        document.getElementById('btnToggleMaintenance').addEventListener('click', async () => {
+            const statusBaru = !isMaintenanceMode ? 'true' : 'false';
+            
+            const { error } = await supabase
+                .from('settings')
+                .update({ value: statusBaru })
+                .eq('key', 'maintenance');
+
+            if (error) {
+                alert("Gagal mengubah status maintenance!");
+                console.error(error);
+            } else {
+                alert(`Maintenance Mode berhasil ${statusBaru === 'true' ? 'DIAKTIFKAN' : 'DIMATIKAN'}!`);
+                await getMaintenanceStatus();
+            }
+        });
 
         // --- MASTER SISWA ---
         async function loadMasterSiswa() {
