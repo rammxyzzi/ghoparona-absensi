@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Digital Siswa</title>
+    <!-- SweetAlert2 CSS (Dark Theme) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { 
+            background: #090a0f;
+            color: #e2e8f0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND BINTANG & BINTANG JATUH --- */
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* --- SPLASH SCREEN LOADING LOGO --- */
+        #splashScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0b0e14;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        #splashScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .school-logo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #38bdf8;
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.98); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.98); opacity: 0.8; }
+        }
+
+        /* --- CARD FORM DARK THEME --- */
+        .card { 
+            position: relative;
+            z-index: 10;
+            width: 100%; 
+            max-width: 480px; 
+            background: rgba(18, 24, 38, 0.85); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); 
+            padding: 25px; 
+        }
+
+        h2 { 
+            color: #f1f5f9; 
+            margin-bottom: 18px; 
+            text-align: center; 
+            font-weight: 700; 
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* KAMERA & FRAME DETEKSI */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 18px;
+            border: 3px solid #ef4444; /* Merah neon saat belum deteksi */
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .camera-container.valid {
+            border-color: #22c55e; /* Hijau neon saat terdeteksi */
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        label { font-size: 13px; font-weight: 600; color: #94a3b8; }
+        
+        input, select { 
+            padding: 11px 14px; 
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #334155; 
+            border-radius: 10px; 
+            font-size: 14px; 
+            color: #f8fafc;
+            outline: none; 
+            transition: all 0.2s ease; 
+        }
+
+        input:focus, select:focus { 
+            border-color: #38bdf8; 
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); 
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        select option {
+            background: #1e293b;
+            color: #f8fafc;
+        }
+
+        .btn { 
+            width: 100%; 
+            padding: 13px; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 15px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: white; 
+            transition: all 0.2s ease; 
+            margin-top: 6px; 
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn:disabled { 
+            background: #334155; 
+            color: #64748b;
+            cursor: not-allowed; 
+            box-shadow: none;
+        }
+
+        .btn:hover:not(:disabled) { 
+            background: linear-gradient(135deg, #0369a1, #1d4ed8);
+            transform: translateY(-1px); 
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
+        }
+        
+        .admin-link { 
+            display: block; 
+            text-align: center; 
+            margin-top: 18px; 
+            font-size: 13px; 
+            color: #64748b; 
+            text-decoration: none; 
+            transition: color 0.2s;
+        }
+
+        .admin-link:hover {
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS EFEK BINTANG & BINTANG JATUH -->
+    <canvas id="starCanvas"></canvas>
+
+    <!-- SPLASH SCREEN / LOADING ANIMATION -->
+    <div id="splashScreen">
+        <img src="https://via.placeholder.com/110?text=LOGO+SEKOLAH" alt="Logo Sekolah" class="school-logo">
+        <div class="loading-text">Memuat Sistem Absensi...</div>
+    </div>
+
+    <!-- MAIN CARD ABSENSI -->
+    <div class="card">
+        <h2>Absensi Siswa Digital</h2>
+
+        <!-- UI KAMERA -->
+        <div id="camBox" class="camera-container">
+            <video id="webcam" autoplay playsinline muted></video>
+            <div id="camStatus" class="status-badge">🔴 Memulai Kamera...</div>
+        </div>
+
+        <form id="formAbsensi">
+            <div class="form-group">
+                <label for="selectKelas">Kelas</label>
+                <select id="selectKelas" required>
+                    <option value="">-- Memuat Kelas... --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="selectNama">Nama Siswa</label>
+                <select id="selectNama" required>
+                    <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="inputTanggal">Tanggal</label>
+                <input type="date" id="inputTanggal" required readonly style="background-color: rgba(15, 23, 42, 0.6); color: #94a3b8;">
+            </div>
+
+            <div class="form-group">
+                <label for="selectKeterangan">Keterangan</label>
+                <select id="selectKeterangan" required>
+                    <option value="Hadir">Hadir</option>
+                    <option value="Izin">Izin</option>
+                    <option value="Sakit">Sakit</option>
+                    <option value="Alpha">Alpha</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="inputPin">PIN Akun Siswa</label>
+                <input type="password" id="inputPin" maxlength="6" placeholder="Masukkan PIN Anda" required>
+            </div>
+
+            <button type="submit" id="btnSubmit" class="btn" disabled>Arahkan Wajah ke Kamera</button>
+        </form>
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Face API AI Library -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+
+    <script type="module">
+        import { supabase } from './supabase.js';
+
+        const WASENDER_API_KEY = "YOUR_WASENDER_API_KEY"; 
+        const NOMOR_WA_TUJUAN  = "6281234567890";
+
+        let masterSiswa = [];
+        let isFaceDetected = false;
+        const video = document.getElementById('webcam');
+        const camBox = document.getElementById('camBox');
+        const camStatus = document.getElementById('camStatus');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            initStarBackground();
+            document.getElementById('inputTanggal').value = new Date().toISOString().split('T')[0];
+            await loadMasterSiswa();
+            startCamera();
+
+            document.getElementById('selectKelas').addEventListener('change', filterSiswaByKelas);
+            document.getElementById('formAbsensi').addEventListener('submit', simpanAbsensi);
+
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                if (splash) splash.classList.add('hidden');
+            }, 1200);
+        });
+
+        /* --- ANIMASI BINTANG & BINTANG JATUH --- */
+        function initStarBackground() {
+            const canvas = document.getElementById('starCanvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            let shootingStars = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Buat Bintang Diam / Kelap-kelip
+            for (let i = 0; i < 150; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.8,
+                    alpha: Math.random(),
+                    speed: Math.random() * 0.02
+                });
+            }
+
+            // Fungsi Bintang Jatuh
+            function createShootingStar() {
+                shootingStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height / 2),
+                    length: Math.random() * 80 + 40,
+                    speed: Math.random() * 10 + 6,
+                    angle: Math.PI / 4, // 45 derajat
+                    alpha: 1
+                });
+            }
+
+            // Loop Bintang Jatuh acak setiap 2-4 detik
+            setInterval(() => {
+                if (Math.random() > 0.3) createShootingStar();
+            }, 2500);
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Gambar Bintang
+                stars.forEach(s => {
+                    s.alpha += s.speed;
+                    if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Gambar Bintang Jatuh
+                shootingStars.forEach((ss, index) => {
+                    const endX = ss.x + Math.cos(ss.angle) * ss.length;
+                    const endY = ss.y + Math.sin(ss.angle) * ss.length;
+
+                    const grad = ctx.createLinearGradient(ss.x, ss.y, endX, endY);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${ss.alpha})`);
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(ss.x, ss.y);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+
+                    ss.x += Math.cos(ss.angle) * ss.speed;
+                    ss.y += Math.sin(ss.angle) * ss.speed;
+                    ss.alpha -= 0.015;
+
+                    if (ss.alpha <= 0 || ss.x > canvas.width || ss.y > canvas.height) {
+                        shootingStars.splice(index, 1);
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 400, height: 300 } });
+                video.srcObject = stream;
+                
+                camStatus.innerText = "🔄 Memuat Model AI Wajah...";
+                await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model');
+                
+                camStatus.innerText = "🔴 Muka Tidak Terdeteksi";
+                detectFaceLoop();
+            } catch (err) {
+                alert("Gagal mengakses kamera! Izinkan akses kamera di browser Anda.");
+                console.error(err);
+            }
+        }
+
+        async function detectFaceLoop() {
+            setInterval(async () => {
+                if (video.paused || video.ended) return;
+
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.5 }));
+
+                if (detections.length > 0) {
+                    isFaceDetected = true;
+                    camBox.classList.add('valid');
+                    camStatus.innerText = "🟢 Wajah Terdeteksi";
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Kirim Absensi";
+                } else {
+                    isFaceDetected = false;
+                    camBox.classList.remove('valid');
+                    camStatus.innerText = "🔴 Muka Tidak Terdeteksi";
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerText = "Arahkan Wajah ke Kamera";
+                }
+            }, 300);
+        }
+
+        async function loadMasterSiswa() {
+            const { data } = await supabase.from('master_siswa').select('*');
+            masterSiswa = data || [];
+            const selectKelas = document.getElementById('selectKelas');
+            const daftarKelas = [...new Set(masterSiswa.map(item => item.kelas))];
+
+            selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            daftarKelas.forEach(kelas => {
+                selectKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
+            });
+        }
+
+        function filterSiswaByKelas() {
+            const kelasDipilih = document.getElementById('selectKelas').value;
+            const selectNama = document.getElementById('selectNama');
+            selectNama.innerHTML = '<option value="">-- Pilih Nama --</option>';
+            if (!kelasDipilih) return;
+
+            const siswaFiltered = masterSiswa.filter(item => item.kelas === kelasDipilih);
+            siswaFiltered.forEach(siswa => {
+                selectNama.innerHTML += `<option value="${siswa.nama}">${siswa.nama}</option>`;
+            });
+        }
+
+        async function takeSnapshotAndUpload(nama, kelas) {
+            const canvas = document.getElementById('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            return new Promise((resolve) => {
+                canvas.toBlob(async (blob) => {
+                    const fileName = `${kelas}_${nama}_${Date.now()}.jpg`;
+                    const { data, error } = await supabase.storage.from('foto-absensi').upload(fileName, blob);
+                    
+                    if (error) {
+                        console.error("Gagal Upload Foto:", error);
+                        resolve(null);
+                    } else {
+                        const { data: publicUrlData } = supabase.storage.from('foto-absensi').getPublicUrl(fileName);
+                        resolve(publicUrlData.publicUrl);
+                    }
+                }, 'image/jpeg', 0.8);
+            });
+        }
+
+        async function kirimWaOtomatisDenganRekap(nama, kelas, tanggal, keterangan, fotoUrl) {
+            try {
+                const { data: riwayat } = await supabase
+                    .from('absensi')
+                    .select('keterangan')
+                    .eq('nama', nama)
+                    .eq('kelas', kelas);
+
+                const list = riwayat || [];
+                const totalHadir = list.filter(a => a.keterangan === 'Hadir').length;
+                const totalIzin  = list.filter(a => a.keterangan === 'Izin').length;
+                const totalSakit = list.filter(a => a.keterangan === 'Sakit').length;
+                const totalAlpha = list.filter(a => a.keterangan === 'Alpha').length;
+
+                const messageCaption = 
+`📢 *LAPORAN ABSENSI SISWA*
+
+👤 *Nama:* ${nama}
+🏫 *Kelas:* ${kelas}
+📅 *Tanggal:* ${tanggal}
+📌 *Keterangan Hari Ini:* ${keterangan}
+
+📊 *REKAP TOTAL KEHADIRAN:*
+✅ Hadir: ${totalHadir} Hari
+🟡 Izin: ${totalIzin} Hari
+🔵 Sakit: ${totalSakit} Hari
+🔴 Alpha: ${totalAlpha} Hari
+
+_Foto bukti & rekap dihitung otomatis via Sistem Absensi._`;
+
+                await fetch("https://wasenderapi.com/api/send-media", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${WASENDER_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        to: NOMOR_WA_TUJUAN,
+                        media_url: fotoUrl,
+                        caption: messageCaption
+                    })
+                });
+
+                console.log("Notifikasi WA Berhasil Dikirim!");
+            } catch (err) {
+                console.error("Gagal Mengirim WA:", err);
+            }
+        }
+
+        async function simpanAbsensi(e) {
+            e.preventDefault();
+
+            if (!isFaceDetected) {
+                Swal.fire({ icon: 'warning', title: 'Wajah Tidak Kelihatan!', text: 'Posisikan wajah Anda pas di depan kamera!' });
+                return;
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Mengambil Foto & Memproses...";
+
+            const kelas = document.getElementById('selectKelas').value;
+            const nama = document.getElementById('selectNama').value;
+            const tanggal = document.getElementById('inputTanggal').value;
+            const keterangan = document.getElementById('selectKeterangan').value;
+            const pinInput = document.getElementById('inputPin').value;
+
+            const siswaValid = masterSiswa.find(item => item.kelas === kelas && item.nama === nama && String(item.pin) === String(pinInput));
+            if (!siswaValid) {
+                Swal.fire({ icon: 'error', title: 'PIN Salah!', text: 'PIN Akun Siswa yang Anda masukkan salah.' });
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Kirim Absensi";
+                return;
+            }
+
+            const { data: absensiAda } = await supabase.from('absensi').select('id').eq('nama', nama).eq('kelas', kelas).eq('tanggal', tanggal);
+            if (absensiAda && absensiAda.length > 0) {
+                Swal.fire({ icon: 'warning', title: 'Sudah Absen!', text: `${nama} sudah melakukan absensi hari ini!` });
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Kirim Absensi";
+                return;
+            }
+
+            const fotoUrl = await takeSnapshotAndUpload(nama, kelas);
+
+            const { error } = await supabase.from('absensi').insert([
+                { kelas, nama, tanggal, keterangan, foto_url: fotoUrl }
+            ]);
+
+            if (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal Simpan!', text: error.message });
+            } else {
+                await kirimWaOtomatisDenganRekap(nama, kelas, tanggal, keterangan, fotoUrl);
+
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Berhasil Absen!', 
+                    text: `Absensi ${nama} berhasil dikirim & notifikasi WA telah diproses!` 
+                });
+                
+                document.getElementById('inputPin').value = "";
+            }
+
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Kirim Absensi";
+        }
+    </script>
+</body>
+</html>
