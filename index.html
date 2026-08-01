@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Digital Siswa</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; color: #333; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { width: 100%; max-width: 480px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 30px; }
+        h2 { color: #2c3e50; margin-bottom: 20px; text-align: center; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        label { font-size: 14px; font-weight: 600; color: #4a5568; }
+        input, select { padding: 11px 14px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; outline: none; transition: all 0.2s ease; }
+        input:focus, select:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; background-color: #3498db; color: white; transition: all 0.2s ease; margin-top: 10px; }
+        .btn:hover { background-color: #2980b9; transform: translateY(-1px); }
+        .admin-link { display: block; text-align: center; margin-top: 20px; font-size: 13px; color: #7f8c8d; text-decoration: none; }
+        .admin-link:hover { color: #3498db; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Form Absensi Siswa</h2>
+        <form id="formAbsensi">
+            <div class="form-group">
+                <label for="selectKelas">Kelas</label>
+                <select id="selectKelas" required>
+                    <option value="">-- Memuat Kelas... --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="selectNama">Nama Siswa</label>
+                <select id="selectNama" required>
+                    <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="inputTanggal">Tanggal</label>
+                <input type="date" id="inputTanggal" required>
+            </div>
+
+            <div class="form-group">
+                <label for="selectKeterangan">Keterangan</label>
+                <select id="selectKeterangan" required>
+                    <option value="Hadir">Hadir</option>
+                    <option value="Izin">Izin</option>
+                    <option value="Sakit">Sakit</option>
+                    <option value="Alpha">Alpha</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="inputPin">PIN Akun Siswa</label>
+                <input type="password" id="inputPin" maxlength="6" placeholder="Masukkan PIN Anda" required>
+            </div>
+
+            <button type="submit" id="btnSubmit" class="btn">Kirim Absensi</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { supabase } from './supabase.js';
+
+        let masterSiswa = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            document.getElementById('inputTanggal').valueAsDate = new Date();
+            await loadMasterSiswa();
+
+            document.getElementById('selectKelas').addEventListener('change', filterSiswaByKelas);
+            document.getElementById('formAbsensi').addEventListener('submit', simpanAbsensi);
+        });
+
+        async function loadMasterSiswa() {
+            const { data, error } = await supabase.from('master_siswa').select('*');
+            if (error) {
+                alert("Gagal mengambil data dari database!");
+                console.error(error);
+                return;
+            }
+
+            masterSiswa = data;
+            const selectKelas = document.getElementById('selectKelas');
+            const daftarKelas = [...new Set(masterSiswa.map(item => item.kelas))];
+
+            selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            daftarKelas.forEach(kelas => {
+                selectKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
+            });
+        }
+
+        function filterSiswaByKelas() {
+            const kelasDipilih = document.getElementById('selectKelas').value;
+            const selectNama = document.getElementById('selectNama');
+
+            selectNama.innerHTML = '<option value="">-- Pilih Nama --</option>';
+            if (!kelasDipilih) return;
+
+            const siswaFiltered = masterSiswa.filter(item => item.kelas === kelasDipilih);
+            siswaFiltered.forEach(siswa => {
+                selectNama.innerHTML += `<option value="${siswa.nama}">${siswa.nama}</option>`;
+            });
+        }
+
+        async function simpanAbsensi(e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Mengirim...";
+
+            const kelas = document.getElementById('selectKelas').value;
+            const nama = document.getElementById('selectNama').value;
+            const tanggal = document.getElementById('inputTanggal').value;
+            const keterangan = document.getElementById('selectKeterangan').value;
+            const pinInput = document.getElementById('inputPin').value;
+
+            // Validasi PIN ke Supabase / Data Local
+            const siswaValid = masterSiswa.find(item => item.kelas === kelas && item.nama === nama && item.pin === pinInput);
+
+            if (!siswaValid) {
+                alert("PIN Akun Siswa Salah!");
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Kirim Absensi";
+                return;
+            }
+
+            // Insert Ke Supabase
+            const { error } = await supabase.from('absensi').insert([
+                { kelas, nama, tanggal, keterangan }
+            ]);
+
+            if (error) {
+                alert("Gagal mengirim absensi!");
+                console.error(error);
+            } else {
+                alert(`Absensi ${nama} berhasil terkirim!`);
+                document.getElementById('inputPin').value = "";
+            }
+
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Kirim Absensi";
+        }
+    </script>
+</body>
+</html>
