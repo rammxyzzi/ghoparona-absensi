@@ -204,6 +204,16 @@
 
         .admin-link:hover { color: #38bdf8; }
 
+        /* --- TAMPILAN MAINTENANCE SCREEN --- */
+        #maintenanceScreen {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        #maintenanceScreen h1 { font-size: 50px; margin-bottom: 15px; }
+        #maintenanceScreen h3 { color: #f87171; margin-bottom: 10px; font-size: 20px; }
+        #maintenanceScreen p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+
         /* --- AI FLOATING CHATBOT WIDGET --- */
         .ai-fab {
             position: fixed;
@@ -379,15 +389,6 @@
         }
 
         .ai-send-btn svg { width: 18px; height: 18px; fill: currentColor; }
-
-        @media (max-width: 480px) {
-            .ai-chat-panel {
-                width: calc(100vw - 30px);
-                right: 15px;
-                bottom: 85px;
-                height: 420px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -397,12 +398,12 @@
 
     <!-- SPLASH SCREEN / LOADING ANIMATION -->
     <div id="splashScreen">
-        <img src="logo-sekolah.jpeg" alt="Logo Sekolah" class="school-logo">
+        <img src="https://via.placeholder.com/110?text=LOGO+SEKOLAH" alt="Logo Sekolah" class="school-logo">
         <div class="loading-text">Memuat Sistem Absensi...</div>
     </div>
 
     <!-- MAIN CARD ABSENSI -->
-    <div class="card">
+    <div id="mainContainer" class="card">
         <h2>Absensi Siswa Digital</h2>
 
         <!-- UI KAMERA -->
@@ -449,7 +450,15 @@
             <button type="submit" id="btnSubmit" class="btn" disabled>Arahkan Wajah ke Kamera</button>
         </form>
 
-   
+        <a href="admin.html" class="admin-link">Masuk Halaman Admin &rarr;</a>
+    </div>
+
+    <!-- LAYAR KETIKA MAINTENANCE AKTIF -->
+    <div id="maintenanceScreen" class="card">
+        <h1>🛠️</h1>
+        <h3>Website Sedang Maintenance</h3>
+        <p>Mohon maaf, sistem absensi sedang dalam perbaikan atau ditutup sementara oleh Admin. Silakan coba beberapa saat lagi.</p>
+        <a href="admin.html" class="admin-link">&rarr; Masuk Halaman Admin</a>
     </div>
 
     <!-- AI FLOATING BUTTON & PANEL CHAT -->
@@ -468,7 +477,7 @@
         </div>
         <div class="ai-messages" id="aiMessages">
             <div class="ai-msg bot">
-                Halo! 👋 Saya asisten AI untuk sistem absensi ini. Ada yang bisa saya bantu terkait informasi cara absen atau bantuan sistem?
+                Halo! 👋 Saya asisten AI untuk sistem absensi ini. Ada yang bisa saya bantu terkait cara absen atau kendala sistem?
             </div>
         </div>
         <div class="ai-suggestions">
@@ -496,7 +505,7 @@
 
         const WASENDER_API_KEY = "YOUR_WASENDER_API_KEY"; 
         const NOMOR_WA_TUJUAN  = "6281234567890";
-        const GEMINI_API_KEY   = "YOUR_GEMINI_API_KEY"; // Isi jika punya API Key Gemini AI
+        const GEMINI_API_KEY   = "YOUR_GEMINI_API_KEY";
 
         let masterSiswa = [];
         let isFaceDetected = false;
@@ -509,17 +518,40 @@
             initStarBackground();
             initAiWidget();
             document.getElementById('inputTanggal').value = new Date().toISOString().split('T')[0];
-            await loadMasterSiswa();
-            startCamera();
 
-            document.getElementById('selectKelas').addEventListener('change', filterSiswaByKelas);
-            document.getElementById('formAbsensi').addEventListener('submit', simpanAbsensi);
+            // 1. Cek Maintenance Dulu
+            await cekStatusMaintenance();
 
             setTimeout(() => {
                 const splash = document.getElementById('splashScreen');
                 if (splash) splash.classList.add('hidden');
             }, 1200);
         });
+
+        /* --- CEK STATUS MAINTENANCE DARI SUPABASE --- */
+        async function cekStatusMaintenance() {
+            try {
+                const { data } = await supabase
+                    .from('settings')
+                    .select('value')
+                    .eq('key', 'maintenance_mode')
+                    .single();
+
+                if (data && data.value === 'true') {
+                    // Jika maintenance aktif, sembunyikan form & tampilkan layar maintenance
+                    document.getElementById('mainContainer').style.display = 'none';
+                    document.getElementById('maintenanceScreen').style.display = 'block';
+                } else {
+                    // Jika tidak aktif, jalankan aplikasi normal
+                    await loadMasterSiswa();
+                    startCamera();
+                }
+            } catch (err) {
+                // Default normal jika tabel settings belum ada
+                await loadMasterSiswa();
+                startCamera();
+            }
+        }
 
         /* --- LOGIK WIDGET AI CHATBOT --- */
         function initAiWidget() {
@@ -550,12 +582,10 @@
 
             if (!text) return;
 
-            // Render User Msg
             aiMessages.innerHTML += `<div class="ai-msg user">${text}</div>`;
             aiInput.value = '';
             aiMessages.scrollTop = aiMessages.scrollHeight;
 
-            // Dummy/Fallback Respon AI Cepat jika tanpa API Key External
             let replyText = getRuleBasedAiResponse(text);
 
             if (!replyText && GEMINI_API_KEY !== "YOUR_GEMINI_API_KEY") {
@@ -580,7 +610,7 @@
                 return "Pastikan pencahayaan cukup terang dan posisikan wajah tepat di tengah kamera. Frame akan berubah hijau jika terdeteksi.";
             }
             if (lower.includes('pin') || lower.includes('lupa')) {
-                return "PIN akun disimpan oleh Wali Kelas/Admin Sekolah. Silakan minta PIN Anda ke admin melalui halaman Admin.";
+                return "PIN akun disimpan oleh Admin Sekolah. Silakan minta PIN Anda ke admin melalui halaman Admin.";
             }
             return null;
         }
@@ -597,7 +627,7 @@
                 const data = await response.json();
                 return data.candidates[0].content.parts[0].text;
             } catch (err) {
-                return "Gagal menghubungkan ke layanan AI. Silakan coba lagi nanti.";
+                return "Gagal menghubungkan ke layanan AI.";
             }
         }
 
@@ -692,7 +722,7 @@
                 camStatus.innerText = "🔴 Muka Tidak Terdeteksi";
                 detectFaceLoop();
             } catch (err) {
-                alert("Gagal mengakses kamera! Izinkan akses kamera di browser Anda.");
+                camStatus.innerText = "⚠️ Kamera Gagal / Diblokir";
             }
         }
 
@@ -728,6 +758,9 @@
             daftarKelas.forEach(kelas => {
                 selectKelas.innerHTML += `<option value="${kelas}">${kelas}</option>`;
             });
+
+            selectKelas.addEventListener('change', filterSiswaByKelas);
+            document.getElementById('formAbsensi').addEventListener('submit', simpanAbsensi);
         }
 
         function filterSiswaByKelas() {
@@ -755,7 +788,7 @@
             return new Promise((resolve) => {
                 canvas.toBlob(async (blob) => {
                     const fileName = `${kelas}_${nama}_${Date.now()}.jpg`;
-                    const { data, error } = await supabase.storage.from('foto-absensi').upload(fileName, blob);
+                    const { error } = await supabase.storage.from('foto-absensi').upload(fileName, blob);
                     
                     if (error) {
                         resolve(null);
@@ -765,53 +798,6 @@
                     }
                 }, 'image/jpeg', 0.8);
             });
-        }
-
-        async function kirimWaOtomatisDenganRekap(nama, kelas, tanggal, keterangan, fotoUrl) {
-            try {
-                const { data: riwayat } = await supabase
-                    .from('absensi')
-                    .select('keterangan')
-                    .eq('nama', nama)
-                    .eq('kelas', kelas);
-
-                const list = riwayat || [];
-                const totalHadir = list.filter(a => a.keterangan === 'Hadir').length;
-                const totalIzin  = list.filter(a => a.keterangan === 'Izin').length;
-                const totalSakit = list.filter(a => a.keterangan === 'Sakit').length;
-                const totalAlpha = list.filter(a => a.keterangan === 'Alpha').length;
-
-                const messageCaption = 
-`📢 *LAPORAN ABSENSI SISWA*
-
-👤 *Nama:* ${nama}
-🏫 *Kelas:* ${kelas}
-📅 *Tanggal:* ${tanggal}
-📌 *Keterangan Hari Ini:* ${keterangan}
-
-📊 *REKAP TOTAL KEHADIRAN:*
-✅ Hadir: ${totalHadir} Hari
-🟡 Izin: ${totalIzin} Hari
-🔵 Sakit: ${totalSakit} Hari
-🔴 Alpha: ${totalAlpha} Hari
-
-_Foto bukti & rekap dihitung otomatis via Sistem Absensi._`;
-
-                await fetch("https://wasenderapi.com/api/send-media", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${WASENDER_API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        to: NOMOR_WA_TUJUAN,
-                        media_url: fotoUrl,
-                        caption: messageCaption
-                    })
-                });
-            } catch (err) {
-                console.error("Gagal Mengirim WA:", err);
-            }
         }
 
         async function simpanAbsensi(e) {
@@ -856,12 +842,10 @@ _Foto bukti & rekap dihitung otomatis via Sistem Absensi._`;
             if (error) {
                 Swal.fire({ icon: 'error', title: 'Gagal Simpan!', text: error.message });
             } else {
-                await kirimWaOtomatisDenganRekap(nama, kelas, tanggal, keterangan, fotoUrl);
-
                 Swal.fire({ 
                     icon: 'success', 
                     title: 'Berhasil Absen!', 
-                    text: `Absensi ${nama} berhasil dikirim & notifikasi WA telah diproses!` 
+                    text: `Absensi ${nama} berhasil dikirim!` 
                 });
                 
                 document.getElementById('inputPin').value = "";
