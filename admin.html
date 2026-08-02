@@ -3,132 +3,477 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Rekap Absensi</title>
+    <title>Panel Admin Sekolah Modern</title>
+    <!-- SweetAlert2 & FontAwesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #080b11; color: #f1f5f9; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: rgba(18, 24, 38, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        .form-group { margin-bottom: 15px; }
+
+        body {
+            background-color: #080b11;
+            color: #f1f5f9;
+            min-height: 100vh;
+            padding: 20px 10px 80px 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .admin-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header-admin {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(18, 24, 38, 0.8);
+            padding: 16px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .card {
+            background: rgba(18, 24, 38, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* FORM STYLES */
+        .form-group { margin-bottom: 12px; text-align: left; }
         .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; outline: none; }
-        .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; }
-        
-        /* TOGGLE SWITCH */
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2563eb; }
-        input:checked + .slider:before { transform: translateX(24px); }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; outline: none;
+            font-size: 13px;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        .btn-primary {
+            width: 100%; padding: 10px 14px; background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;
+            transition: all 0.3s ease; font-size: 13px;
+        }
+
+        .btn-danger {
+            background: #ef4444; color: white; border: none; padding: 6px 10px;
+            border-radius: 6px; cursor: pointer; font-size: 11px;
+        }
+
+        /* NAVIGATION MENU TABS */
+        .admin-nav {
+            display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 5px;
+        }
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8; padding: 10px 16px; border-radius: 10px; cursor: pointer;
+            white-space: nowrap; font-size: 12px; font-weight: 600; transition: all 0.2s;
+        }
+        .nav-btn.active {
+            background: #2563eb; color: white; border-color: #38bdf8;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* TABLE STYLE */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        th { background: rgba(255, 255, 255, 0.05); color: #38bdf8; font-weight: 600; }
+
+        /* GRID MEMORY LIST */
+        .admin-memory-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px;
+        }
+        .admin-memory-item {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px; overflow: hidden; position: relative;
+        }
+        .admin-memory-item img { width: 100%; height: 110px; object-fit: cover; }
+        .admin-memory-info { padding: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <div class="header">
-            <h2>Panel Admin Setting</h2>
-            <button class="btn-danger" id="btnLogoutAdmin">Logout Admin</button>
+    <div class="admin-container">
+
+        <!-- LOGIN SCREEN ADMIN -->
+        <div id="adminLoginScreen" class="card" style="max-width: 400px; margin: 60px auto;">
+            <div style="font-size: 40px; text-align: center; margin-bottom: 10px;">🔐</div>
+            <h2 style="text-align: center; font-size: 20px; margin-bottom: 15px;">Login Admin Sekolah</h2>
+            <form id="formAdminLogin">
+                <div class="form-group">
+                    <label>Password Admin</label>
+                    <input type="password" id="adminPass" placeholder="Masukkan Password Admin" required>
+                </div>
+                <button type="submit" class="btn-primary">Masuk Panel Admin &rarr;</button>
+            </form>
         </div>
 
-        <!-- MODE MAINTENANCE TOGGLE (FIX ERROR 409 UPSERT) -->
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h4 style="color: #38bdf8;"><i class="fa-solid fa-wrench"></i> Mode Maintenance (Perbaikan Web)</h4>
-                <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Aktifkan untuk menutup akses siswa ke halaman absensi secara sementara.</p>
+        <!-- MAIN DASHBOARD ADMIN -->
+        <div id="adminDashboard" style="display: none;">
+            
+            <div class="header-admin">
+                <div>
+                    <h2 style="font-size: 18px; color: #38bdf8;"><i class="fa-solid fa-user-shield"></i> Panel Kontrol Admin</h2>
+                    <p style="font-size: 11px; color: #94a3b8;">Kelola Siswa, Absensi, Informasi & Memory Sekolah</p>
+                </div>
+                <button id="btnAdminLogout" class="btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggleMaintenance">
-                <span class="slider"></span>
-            </label>
-        </div>
 
-        <!-- TAMBAH DATA SISWA -->
-        <div class="card">
-            <h3 style="font-size: 16px; margin-bottom: 15px; color: #38bdf8;">Tambah Master Data Siswa</h3>
-            <form id="formTambahSiswa">
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                    <div class="form-group">
-                        <label>Kelas</label>
-                        <input type="text" id="addKelas" placeholder="Contoh: X TKJ" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Nama Siswa</label>
-                        <input type="text" id="addNama" placeholder="Contoh: Budi Santoso" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Username / Password</label>
-                        <input type="text" id="addPassword" placeholder="Contoh: 1234" required>
+            <!-- TABS MENU -->
+            <div class="admin-nav">
+                <button class="nav-btn active" onclick="switchAdminTab('Absensi', this)"><i class="fa-solid fa-list-check"></i> Riwayat Absen</button>
+                <button class="nav-btn" onclick="switchAdminTab('MasterSiswa', this)"><i class="fa-solid fa-users"></i> Master Siswa</button>
+                <button class="nav-btn" onclick="switchAdminTab('InfoSekolah', this)"><i class="fa-solid fa-bullhorn"></i> Info Sekolah</button>
+                <button class="nav-btn" onclick="switchAdminTab('MemorySekolah', this)"><i class="fa-solid fa-images"></i> Memory Sekolah</button>
+            </div>
+
+            <!-- TAB 1: RIWAYAT ABSENSI -->
+            <div id="tabAbsensi" class="tab-content active">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-clock-rotate-left"></i> Log Absensi Siswa</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu & Tanggal</th>
+                                    <th>Nama Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Foto Bukti</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listAbsensiTable">
+                                <tr><td colspan="4" style="text-align: center; color: #94a3b8;">Memuat data absensi...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <button type="submit" class="btn-primary">Simpan Siswa</button>
-            </form>
+            </div>
+
+            <!-- TAB 2: MASTER DATA SISWA -->
+            <div id="tabMasterSiswa" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-user-plus"></i> Tambah Akun Siswa Baru</h3>
+                    <form id="formTambahSiswa">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Nama Lengkap</label>
+                                <input type="text" id="addNama" placeholder="Contoh: Ryann" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kelas</label>
+                                <input type="text" id="addKelas" placeholder="Contoh: XII C++" required>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Username Login</label>
+                                <input type="text" id="addUsername" placeholder="Contoh: ryann12" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password Login</label>
+                                <input type="text" id="addPassword" placeholder="Contoh: 123456" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top: 5px;">+ Simpan Akun Siswa</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-users"></i> Daftar Siswa Terdaftar</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Kelas</th>
+                                    <th>Username</th>
+                                    <th>Password</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listSiswaTable">
+                                <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Memuat data siswa...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: KELOLA INFORMASI SEKOLAH -->
+            <div id="tabInfoSekolah" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bullhorn"></i> Tambah Informasi / Pengumuman</h3>
+                    <form id="formTambahInfo">
+                        <div class="form-group">
+                            <label>Judul Pengumuman</label>
+                            <input type="text" id="addInfoJudul" placeholder="Contoh: Libur Nasional / Ujian Semester" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Isi Informasi</label>
+                            <textarea id="addInfoIsi" placeholder="Tulis rincian pengumuman untuk siswa di sini..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">+ Publikasikan Informasi</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-list"></i> Daftar Informasi Aktif</h3>
+                    <div id="adminInfoList">
+                        <p style="font-size: 12px; color: #94a3b8;">Memuat informasi...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: KELOLA MEMORY SEKOLAH -->
+            <div id="tabMemorySekolah" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-image"></i> Tambah Memory Galeri Foto</h3>
+                    <form id="formTambahMemory">
+                        <div class="form-group">
+                            <label>Judul Memory / Kegiatan</label>
+                            <input type="text" id="addMemJudul" placeholder="Contoh: Classmeeting / Study Tour 2026" required>
+                        </div>
+                        <div class="form-group">
+                            <label>URL / Link Foto (Atau Link Gambar Public)</label>
+                            <input type="url" id="addMemFotoUrl" placeholder="https://..." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Deskripsi Singkat (Opsional)</label>
+                            <textarea id="addMemDeskripsi" placeholder="Ceritakan momen singkat di foto ini..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">+ Upload Memory Baru</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-photo-film"></i> Galeri Memory Terdaftar</h3>
+                    <div id="adminMemoryGrid" class="admin-memory-grid">
+                        <p style="font-size: 12px; color: #94a3b8;">Memuat memory...</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
 
+    <!-- SCRIPT UTAMA DASHBOARD ADMIN -->
     <script type="module">
         import { supabase } from './supabase.js';
 
-        const toggleMaintenance = document.getElementById('toggleMaintenance');
+        const ADMIN_PASSWORD = "admin123"; // Ganti password admin kamu di sini
 
-        // 1. CEK STATUS MAINTENANCE SAAT AWAL
-        async function getMaintenanceStatus() {
-            const { data } = await supabase.from('settings').select('value').eq('key', 'maintenance').single();
-            if (data) {
-                toggleMaintenance.checked = (data.value === 'true');
+        document.addEventListener('DOMContentLoaded', () => {
+            cekAdminSession();
+        });
+
+        function cekAdminSession() {
+            if (localStorage.getItem('adminIsLoggedIn') === 'true') {
+                document.getElementById('adminLoginScreen').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+
+                loadAbsensiData();
+                loadSiswaData();
+                loadInfoData();
+                loadMemoryData();
+            } else {
+                document.getElementById('adminLoginScreen').style.display = 'block';
+                document.getElementById('adminDashboard').style.display = 'none';
             }
         }
-        getMaintenanceStatus();
 
-        // 2. SIMPAN MAINTENANCE MENGGUNAKAN UPSERT (MENGHINDARI ERROR 409 CONFLICT)
-        toggleMaintenance.addEventListener('change', async (e) => {
-            const status = e.target.checked;
-
-            const { error } = await supabase
-                .from('settings')
-                .upsert({ key: 'maintenance', value: String(status) }, { onConflict: 'key' });
-
-            if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal Update Status!', text: error.message });
-                e.target.checked = !status;
-            } else {
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: status ? 'Mode Maintenance Aktif!' : 'Mode Maintenance Dimatikan!', 
-                    timer: 1500, 
-                    showConfirmButton: false 
-                });
-            }
-        });
-
-        // 3. TAMBAH SISWA
-        document.getElementById('formTambahSiswa').addEventListener('submit', async (e) => {
+        // LOGIN ADMIN
+        document.getElementById('formAdminLogin')?.addEventListener('submit', (e) => {
             e.preventDefault();
-            const kelas = document.getElementById('addKelas').value.trim();
-            const nama = document.getElementById('addNama').value.trim();
-            const password = document.getElementById('addPassword').value.trim();
-            const username = nama.toLowerCase().replace(/\s+/g, '');
-
-            const { error } = await supabase.from('master_siswa').insert([{ kelas, nama, username, password }]);
-
-            if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal Menambah Siswa', text: error.message });
+            const pass = document.getElementById('adminPass').value;
+            if (pass === ADMIN_PASSWORD) {
+                localStorage.setItem('adminIsLoggedIn', 'true');
+                Swal.fire({ icon: 'success', title: 'Login Admin Berhasil', timer: 1000, showConfirmButton: false });
+                cekAdminSession();
             } else {
-                Swal.fire({ icon: 'success', title: 'Siswa Berhasil Ditambahkan!' });
-                document.getElementById('formTambahSiswa').reset();
+                Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Password Admin Salah!' });
             }
         });
 
-        document.getElementById('btnLogoutAdmin').addEventListener('click', () => {
-            location.href = 'index.html';
+        // LOGOUT ADMIN
+        document.getElementById('btnAdminLogout')?.addEventListener('click', () => {
+            localStorage.removeItem('adminIsLoggedIn');
+            location.reload();
         });
+
+        // 1. LOAD RIWAYAT ABSENSI
+        async function loadAbsensiData() {
+            const table = document.getElementById('listAbsensiTable');
+            const { data, error } = await supabase.from('absensi').select('*').order('id', { ascending: false });
+
+            if (data && data.length > 0) {
+                table.innerHTML = data.map(item => `
+                    <tr>
+                        <td>${new Date(item.waktu).toLocaleString('id-ID')}</td>
+                        <td><b>${item.nama}</b></td>
+                        <td>${item.kelas}</td>
+                        <td>
+                            ${item.foto_url && item.foto_url !== '-' ? 
+                                `<a href="${item.foto_url}" target="_blank" style="color: #38bdf8; text-decoration: none;"><i class="fa-solid fa-image"></i> Lihat Foto</a>` 
+                                : '<span style="color:#64748b;">Tidak Ada</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">Belum ada riwayat absensi.</td></tr>`;
+            }
+        }
+
+        // 2. KELOLA MASTER SISWA
+        async function loadSiswaData() {
+            const table = document.getElementById('listSiswaTable');
+            const { data } = await supabase.from('master_siswa').select('*').order('id', { ascending: false });
+
+            if (data && data.length > 0) {
+                table.innerHTML = data.map(siswa => `
+                    <tr>
+                        <td><b>${siswa.nama}</b></td>
+                        <td>${siswa.kelas}</td>
+                        <td><code>${siswa.username}</code></td>
+                        <td><code>${siswa.password}</code></td>
+                        <td>
+                            <button class="btn-danger" onclick="hapusSiswa(${siswa.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                table.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Belum ada siswa terdaftar.</td></tr>`;
+            }
+        }
+
+        document.getElementById('formTambahSiswa')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nama = document.getElementById('addNama').value.trim();
+            const kelas = document.getElementById('addKelas').value.trim();
+            const username = document.getElementById('addUsername').value.trim().toLowerCase();
+            const password = document.getElementById('addPassword').value.trim();
+
+            const { error } = await supabase.from('master_siswa').insert([{ nama, kelas, username, password }]);
+            if (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+            } else {
+                Swal.fire({ icon: 'success', title: 'Siswa Ditambahkan', timer: 1000, showConfirmButton: false });
+                document.getElementById('formTambahSiswa').reset();
+                loadSiswaData();
+            }
+        });
+
+        window.hapusSiswa = async function(id) {
+            if (confirm('Yakin ingin menghapus akun siswa ini?')) {
+                await supabase.from('master_siswa').delete().eq('id', id);
+                loadSiswaData();
+            }
+        }
+
+        // 3. KELOLA INFORMASI SEKOLAH
+        async function loadInfoData() {
+            const list = document.getElementById('adminInfoList');
+            const { data } = await supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
+
+            if (data && data.length > 0) {
+                list.innerHTML = data.map(info => `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 14px; color: #38bdf8;">${info.judul}</div>
+                            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">${info.isi}</p>
+                        </div>
+                        <button class="btn-danger" onclick="hapusInfo(${info.id})" style="margin-left: 10px;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = `<p style="font-size: 12px; color: #64748b;">Belum ada informasi sekolah.</p>`;
+            }
+        }
+
+        document.getElementById('formTambahInfo')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const judul = document.getElementById('addInfoJudul').value.trim();
+            const isi = document.getElementById('addInfoIsi').value.trim();
+
+            const { error } = await supabase.from('informasi_sekolah').insert([{ judul, isi }]);
+            if (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+            } else {
+                Swal.fire({ icon: 'success', title: 'Informasi Dipublikasikan', timer: 1000, showConfirmButton: false });
+                document.getElementById('formTambahInfo').reset();
+                loadInfoData();
+            }
+        });
+
+        window.hapusInfo = async function(id) {
+            if (confirm('Hapus pengumuman informasi ini?')) {
+                await supabase.from('informasi_sekolah').delete().eq('id', id);
+                loadInfoData();
+            }
+        }
+
+        // 4. KELOLA MEMORY SEKOLAH
+        async function loadMemoryData() {
+            const grid = document.getElementById('adminMemoryGrid');
+            const { data } = await supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
+
+            if (data && data.length > 0) {
+                grid.innerHTML = data.map(mem => `
+                    <div class="admin-memory-item">
+                        <img src="${mem.foto_url}" alt="Memory">
+                        <div class="admin-memory-info">
+                            <div style="font-weight: 700; font-size: 12px;">${mem.judul}</div>
+                            <p style="font-size: 10px; color: #94a3b8; margin-top: 2px;">${mem.deskripsi || ''}</p>
+                            <button class="btn-danger" onclick="hapusMemory(${mem.id})" style="width: 100%; margin-top: 8px;"><i class="fa-solid fa-trash"></i> Hapus</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = `<p style="font-size: 12px; color: #64748b; grid-column: 1 / -1;">Belum ada galeri memory.</p>`;
+            }
+        }
+
+        document.getElementById('formTambahMemory')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const judul = document.getElementById('addMemJudul').value.trim();
+            const foto_url = document.getElementById('addMemFotoUrl').value.trim();
+            const deskripsi = document.getElementById('addMemDeskripsi').value.trim();
+
+            const { error } = await supabase.from('memory_sekolah').insert([{ judul, foto_url, deskripsi }]);
+            if (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+            } else {
+                Swal.fire({ icon: 'success', title: 'Memory Ditambahkan', timer: 1000, showConfirmButton: false });
+                document.getElementById('formTambahMemory').reset();
+                loadMemoryData();
+            }
+        });
+
+        window.hapusMemory = async function(id) {
+            if (confirm('Hapus foto memory ini?')) {
+                await supabase.from('memory_sekolah').delete().eq('id', id);
+                loadMemoryData();
+            }
+        }
+
+        // SWITCH TAB MENU ADMIN
+        window.switchAdminTab = function(tabName, el) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById('tab' + tabName).classList.add('active');
+            if (el) el.classList.add('active');
+        }
     </script>
 </body>
 </html>
