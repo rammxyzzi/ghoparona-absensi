@@ -517,6 +517,7 @@
                 .eq('nama', siswa.nama);
 
             // KONFIGURASI WASENDER API
+            // KONFIGURASI WASENDER API
             const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
             const noHpTujuan = '6283872851796'; // <-- Ganti dengan nomor tujuan WhatsApp Anda (awali 62)
 
@@ -529,24 +530,30 @@
                 `📊 Total Hadir: *${totalHadir || 1} Kali*\n\n` +
                 `_Status: Hadir Terverifikasi AI System_`;
 
-            // Kirim WhatsApp (termasuk gambar foto jika ada)
+            // Mencoba mengirim dengan format payload yang kompatibel dengan WasenderAPI
+            let payloadData = {
+                to: noHpTujuan,
+                text: pesanWA
+            };
+
+            // Jika foto tersedia, sertakan media
+            if (fotoUrl && fotoUrl !== '-') {
+                payloadData.media = fotoUrl; // Sebagian besar API Gateway menggunakan 'media' atau 'url'
+            }
+
             fetch('https://wasenderapi.com/api/send-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${WASENDER_API_KEY}`
                 },
-                body: JSON.stringify({
-                    to: noHpTujuan,
-                    text: pesanWA,
-                    image: fotoUrl !== '-' ? fotoUrl : undefined,
-                    media_url: fotoUrl !== '-' ? fotoUrl : undefined
-                })
+                body: JSON.stringify(payloadData)
             })
-            .then(res => res.json())
-            .then(data => console.log('Respon WA:', data))
+            .then(async res => {
+                const result = await res.json();
+                console.log('Respon Wasender:', result);
+            })
             .catch(e => console.log('Wasender Error:', e));
-
             Swal.fire({ 
                 icon: 'success', 
                 title: 'Absen Berhasil!', 
