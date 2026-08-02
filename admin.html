@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin Sekolah Modern</title>
+    <title>Admin - Control Panel</title>
     <!-- SweetAlert2 & FontAwesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -108,7 +108,7 @@
         <!-- LOGIN SCREEN ADMIN -->
         <div id="adminLoginScreen" class="card" style="max-width: 400px; margin: 60px auto;">
             <div style="font-size: 40px; text-align: center; margin-bottom: 10px;">🔐</div>
-            <h2 style="text-align: center; font-size: 20px; margin-bottom: 15px;">Login Admin Sekolah</h2>
+            <h2 style="text-align: center; font-size: 20px; margin-bottom: 15px;">Login - Admin</h2>
             <form id="formAdminLogin">
                 <div class="form-group">
                     <label>Password Admin</label>
@@ -132,7 +132,7 @@
             <!-- TABS MENU -->
             <div class="admin-nav">
                 <button class="nav-btn active" onclick="switchAdminTab('Absensi', this)"><i class="fa-solid fa-list-check"></i> Riwayat Absen</button>
-                <button class="nav-btn" onclick="switchAdminTab('MasterSiswa', this)"><i class="fa-solid fa-users"></i> Master Siswa</button>
+                <button class="nav-btn" onclick="switchAdminTab('DataSiswa', this)"><i class="fa-solid fa-users"></i> Master Siswa</button>
                 <button class="nav-btn" onclick="switchAdminTab('InfoSekolah', this)"><i class="fa-solid fa-bullhorn"></i> Info Sekolah</button>
                 <button class="nav-btn" onclick="switchAdminTab('MemorySekolah', this)"><i class="fa-solid fa-images"></i> Memory Sekolah</button>
             </div>
