@@ -430,16 +430,28 @@
 
             document.getElementById('filterKelasRekap').addEventListener('change', renderRekapSiswa);
         }
-
-        async function loadMasterSiswa() {
-            const { data } = await supabase.from('master_siswa').select('*').order('kelas', { ascending: true });
-            masterSiswaList = data || [];
-
-            const selectFilter = document.getElementById('filterKelasRekap');
-            const daftarKelas = [...new Set(masterSiswaList.map(i => i.kelas))];
-            selectFilter.innerHTML = '<option value="">-- Semua Kelas --</option>';
-            daftarKelas.forEach(k => selectFilter.innerHTML += `<option value="${k}">${k}</option>`);
-        }
+            async function loadMasterSiswa() {
+                const loginKelas = document.getElementById('loginKelas');
+                const loginNama = document.getElementById('loginNama');
+            
+                // Cek dulu apakah elemen dropdown masih ada di HTML
+                if (!loginKelas || !loginNama) return; 
+            
+                const { data } = await supabase.from('master_siswa').select('*');
+                const masterSiswa = data || [];
+            
+                const daftarKelas = [...new Set(masterSiswa.map(item => item.kelas))];
+                loginKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+                daftarKelas.forEach(k => loginKelas.innerHTML += `<option value="${k}">${k}</option>`);
+            
+                loginKelas.addEventListener('change', () => {
+                    const kelas = loginKelas.value;
+                    loginNama.innerHTML = '<option value="">-- Pilih Nama --</option>';
+                    masterSiswa.filter(s => s.kelas === kelas).forEach(s => {
+                        loginNama.innerHTML += `<option value="${s.nama}">${s.nama}</option>`;
+                    });
+                });
+            }
 
         async function loadAbsensi() {
             const { data } = await supabase.from('absensi').select('*').order('created_at', { ascending: false });
