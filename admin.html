@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Rekap Absensi</title>
+    <!-- SweetAlert2 Dark Theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body { 
+            background-color: #090a0f; 
+            color: #e2e8f0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND BINTANG & BINTANG JATUH --- */
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* OVERLAY LOGIN ADMIN */
+        .login-overlay { 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(9, 10, 15, 0.95); 
+            display: flex; justify-content: center; align-items: center; 
+            z-index: 999; 
+            backdrop-filter: blur(12px);
+        }
+
+        .login-card { 
+            background: rgba(18, 24, 38, 0.9); 
+            padding: 30px; 
+            border-radius: 16px; 
+            width: 100%; 
+            max-width: 360px; 
+            text-align: center; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+
+        /* MAIN CONTAINER ADMIN */
+        .container { 
+            position: relative;
+            z-index: 10;
+            width: 100%; 
+            max-width: 1050px; 
+            background: rgba(18, 24, 38, 0.85); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); 
+            padding: 30px; 
+            display: none; 
+        }
+
+        .container.active { display: block !important; }
+        
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+            padding-bottom: 15px; 
+        }
+
+        h2, h3 { color: #f8fafc; margin-bottom: 15px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        
+        /* BOX MAINTENANCE SETTING */
+        .maintenance-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 28px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155; transition: .4s; border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: #ef4444; }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            background: rgba(30, 41, 59, 0.5); 
+            padding: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 12px; 
+            margin-bottom: 30px; 
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        label { font-size: 13px; font-weight: 600; color: #94a3b8; }
+        
+        input, select { 
+            padding: 10px 14px; 
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #334155; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            color: #f8fafc;
+            outline: none; 
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        select option { background: #1e293b; color: #f8fafc; }
+        
+        .btn { 
+            padding: 9px 16px; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            text-decoration: none; 
+            display: inline-block; 
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; }
+        .btn-success { background: linear-gradient(135deg, #16a34a, #15803d); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+        .btn-logout { background: #334155; color: #cbd5e1; }
+        
+        .btn:hover { transform: translateY(-1px); opacity: 0.95; }
+        
+        .table-container { 
+            overflow-x: auto; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            margin-bottom: 30px; 
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background: rgba(30, 41, 59, 0.8); color: #38bdf8; padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        td { padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: #e2e8f0; }
+        
+        .badge { padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .badge-hadir { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .badge-izin { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+        .badge-sakit { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .badge-alpha { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS EFEK BINTANG & BINTANG JATUH -->
+    <canvas id="starCanvas"></canvas>
+
+    <!-- OVERLAY PIN LOGIN ADMIN -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <h3>Login Admin</h3>
+            <p style="font-size:13px; color:#94a3b8; margin-bottom:15px;">Masukkan PIN Admin Rahasia</p>
+            <form id="formLoginAdmin">
+                <input type="password" id="pinAdminInput" placeholder="PIN Admin" required style="width:100%; margin-bottom:15px; text-align:center;">
+                <button type="submit" class="btn btn-primary" style="width:100%;">Masuk Panel</button>
+            </form>
+            <a href="index.html" style="display:inline-block; margin-top:15px; font-size:12px; color:#64748b; text-decoration:none;">&larr; Kembali ke absensi</a>
+        </div>
+    </div>
+
+    <!-- MAIN PANEL ADMIN -->
+    <div id="adminPanel" class="container">
+        <div class="header">
+            <h2>Panel Admin Setting</h2>
+            <button id="btnLogout" class="btn btn-logout">Logout Admin</button>
+        </div>
+
+        <!-- 🛠️ SETTING MAINTENANCE MODE -->
+        <div class="maintenance-card">
+            <div>
+                <h4 style="color:#f8fafc; font-size:16px;">🛠️ Mode Maintenance (Perbaikan Web)</h4>
+                <p style="font-size:13px; color:#94a3b8; margin-top:4px;">Aktifkan untuk menutup akses siswa ke halaman absensi secara sementara.</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="toggleMaintenance">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <!-- 📊 TABEL REKAP TOTAL ABSENSI PER SISWA -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3>📊 Rekap Total Absensi Siswa</h3>
+            <div style="width: 200px;">
+                <select id="filterKelasRekap">
+                    <option value="">-- Semua Kelas --</option>
+                </select>
+            </div>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kelas</th>
+                        <th>Nama Siswa</th>
+                        <th style="color:#4ade80; text-align:center;">Hadir</th>
+                        <th style="color:#facc15; text-align:center;">Izin</th>
+                        <th style="color:#60a5fa; text-align:center;">Sakit</th>
+                        <th style="color:#f87171; text-align:center;">Alpha</th>
+                        <th style="text-align:center;">Total Hadir (%)</th>
+                        <th style="text-align:center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelRekapSiswa"></tbody>
+            </table>
+        </div>
+
+        <hr style="margin-bottom:25px; border:0; border-top:1px solid rgba(255,255,255,0.1);">
+
+        <!-- FORM TAMBAH SISWA -->
+        <h3>Tambah Master Data Siswa</h3>
+        <form id="formMaster" class="form-grid">
+            <div class="form-group">
+                <label>Kelas</label>
+                <input type="text" id="adminKelas" placeholder="Contoh: XII IPA 1" required>
+            </div>
+            <div class="form-group">
+                <label>Nama Siswa</label>
+                <input type="text" id="adminNama" placeholder="Contoh: Budi Santoso" required>
+            </div>
+            <div class="form-group">
+                <label>PIN Akun Siswa</label>
+                <input type="password" id="adminPin" maxlength="6" placeholder="Contoh: 1234" required>
+            </div>
+            <div class="form-group full-width">
+                <button type="submit" class="btn btn-primary">Simpan Siswa</button>
+            </div>
+        </form>
+
+        <!-- RIWAYAT DETAIL ABSENSI -->
+        <h3>Riwayat Detail Kehadiran Harian</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kelas</th>
+                        <th>Nama</th>
+                        <th>Tanggal</th>
+                        <th>Keterangan</th>
+                        <th>Foto Bukti</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelAbsensi"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="module">
+        import { supabase } from './supabase.js';
+
+        const PIN_ADMIN_RAHASIA = "1234"; 
+        const WASENDER_API_KEY = "YOUR_WASENDER_API_KEY"; 
+        const NOMOR_WA_ADMIN = "6281234567890";
+
+        let masterSiswaList = [];
+        let absensiList = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initStarBackground();
+        });
+
+        /* --- LOGIKA SETTING MAINTENANCE --- */
+        async function loadMaintenanceStatus() {
+            const toggle = document.getElementById('toggleMaintenance');
+            const { data } = await supabase.from('settings').select('value').eq('key', 'maintenance_mode').single();
+            if (data) {
+                toggle.checked = (data.value === 'true');
+            }
+
+            toggle.addEventListener('change', async (e) => {
+                const isChecked = e.target.checked ? 'true' : 'false';
+                await supabase.from('settings').upsert({ key: 'maintenance_mode', value: isChecked });
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Status Maintenance Diperbarui',
+                    text: e.target.checked ? 'Mode Maintenance AKTIF (Siswa tidak bisa absen)' : 'Mode Maintenance NONAKTIF (Siswa bisa absen)'
+                });
+            });
+        }
+
+        /* --- ANIMASI BINTANG & BINTANG JATUH --- */
+        function initStarBackground() {
+            const canvas = document.getElementById('starCanvas');
+            const ctx = canvas.getContext('2d');
+            let stars = [];
+            let shootingStars = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            for (let i = 0; i < 150; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 1.8,
+                    alpha: Math.random(),
+                    speed: Math.random() * 0.02
+                });
+            }
+
+            function createShootingStar() {
+                shootingStars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height / 2),
+                    length: Math.random() * 80 + 40,
+                    speed: Math.random() * 10 + 6,
+                    angle: Math.PI / 4,
+                    alpha: 1
+                });
+            }
+
+            setInterval(() => {
+                if (Math.random() > 0.3) createShootingStar();
+            }, 2500);
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                stars.forEach(s => {
+                    s.alpha += s.speed;
+                    if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                shootingStars.forEach((ss, index) => {
+                    const endX = ss.x + Math.cos(ss.angle) * ss.length;
+                    const endY = ss.y + Math.sin(ss.angle) * ss.length;
+
+                    const grad = ctx.createLinearGradient(ss.x, ss.y, endX, endY);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${ss.alpha})`);
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(ss.x, ss.y);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+
+                    ss.x += Math.cos(ss.angle) * ss.speed;
+                    ss.y += Math.sin(ss.angle) * ss.speed;
+                    ss.alpha -= 0.015;
+
+                    if (ss.alpha <= 0 || ss.x > canvas.width || ss.y > canvas.height) {
+                        shootingStars.splice(index, 1);
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        document.getElementById('formLoginAdmin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pinInput = document.getElementById('pinAdminInput').value.trim();
+
+            if (String(pinInput) === String(PIN_ADMIN_RAHASIA)) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('adminPanel').classList.add('active');
+                await loadMaintenanceStatus();
+                await loadAllData();
+            } else {
+                Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'PIN Admin Salah!' });
+            }
+        });
+
+        document.getElementById('btnLogout').addEventListener('click', () => location.reload());
+
+        async function loadAllData() {
+            await loadMasterSiswa();
+            await loadAbsensi();
+            renderRekapSiswa();
+
+            document.getElementById('filterKelasRekap').addEventListener('change', renderRekapSiswa);
+        }
+
+        async function loadMasterSiswa() {
+            const { data } = await supabase.from('master_siswa').select('*').order('kelas', { ascending: true });
+            masterSiswaList = data || [];
+
+            const selectFilter = document.getElementById('filterKelasRekap');
+            const daftarKelas = [...new Set(masterSiswaList.map(i => i.kelas))];
+            selectFilter.innerHTML = '<option value="">-- Semua Kelas --</option>';
+            daftarKelas.forEach(k => selectFilter.innerHTML += `<option value="${k}">${k}</option>`);
+        }
+
+        async function loadAbsensi() {
+            const { data } = await supabase.from('absensi').select('*').order('created_at', { ascending: false });
+            absensiList = data || [];
+
+            const tbody = document.getElementById('tabelAbsensi');
+            tbody.innerHTML = "";
+
+            if (absensiList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Belum ada riwayat absensi.</td></tr>`;
+                return;
+            }
+
+            absensiList.forEach(item => {
+                const badgeClass = `badge-${item.keterangan.toLowerCase()}`;
+                const fotoBtn = item.foto_url 
+                    ? `<a href="${item.foto_url}" target="_blank" class="btn btn-primary" style="padding:4px 8px; font-size:11px;">Lihat Foto</a>` 
+                    : `-`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.kelas}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.tanggal}</td>
+                        <td><span class="badge ${badgeClass}">${item.keterangan}</span></td>
+                        <td>${fotoBtn}</td>
+                        <td><button class="btn btn-danger" onclick="hapusAbsensi(${item.id})">Hapus</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderRekapSiswa() {
+            const kelasFilter = document.getElementById('filterKelasRekap').value;
+            const tbody = document.getElementById('tabelRekapSiswa');
+            tbody.innerHTML = "";
+
+            let filteredSiswa = masterSiswaList;
+            if (kelasFilter) {
+                filteredSiswa = masterSiswaList.filter(s => s.kelas === kelasFilter);
+            }
+
+            if (filteredSiswa.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Tidak ada data siswa.</td></tr>`;
+                return;
+            }
+
+            filteredSiswa.forEach(siswa => {
+                const absensiSiswa = absensiList.filter(a => a.nama === siswa.nama && a.kelas === siswa.kelas);
+                
+                const totalHadir = absensiSiswa.filter(a => a.keterangan === 'Hadir').length;
+                const totalIzin  = absensiSiswa.filter(a => a.keterangan === 'Izin').length;
+                const totalSakit = absensiSiswa.filter(a => a.keterangan === 'Sakit').length;
+                const totalAlpha = absensiSiswa.filter(a => a.keterangan === 'Alpha').length;
+
+                const totalPertemuan = absensiSiswa.length;
+                const persentaseHadir = totalPertemuan > 0 ? ((totalHadir / totalPertemuan) * 100).toFixed(0) : 0;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${siswa.kelas}</td>
+                        <td><strong>${siswa.nama}</strong></td>
+                        <td style="text-align:center; font-weight:bold; color:#4ade80;">${totalHadir}</td>
+                        <td style="text-align:center; font-weight:bold; color:#facc15;">${totalIzin}</td>
+                        <td style="text-align:center; font-weight:bold; color:#60a5fa;">${totalSakit}</td>
+                        <td style="text-align:center; font-weight:bold; color:#f87171;">${totalAlpha}</td>
+                        <td style="text-align:center;">
+                            <span class="badge ${persentaseHadir >= 75 ? 'badge-hadir' : 'badge-alpha'}">${persentaseHadir}%</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <button class="btn btn-success" style="font-size:11px;" onclick="kirimRekapWA('${siswa.nama}', '${siswa.kelas}', ${totalHadir}, ${totalIzin}, ${totalSakit}, ${totalAlpha})">Kirim WA</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.kirimRekapWA = async (nama, kelas, h, i, s, a) => {
+            const caption = 
+`📊 *REKAP TOTAL ABSENSI SISWA*
+
+👤 *Nama:* ${nama}
+🏫 *Kelas:* ${kelas}
+
+✅ *Hadir:* ${h} Hari
+🟡 *Izin:* ${i} Hari
+🔵 *Sakit:* ${s} Hari
+🔴 *Alpha:* ${a} Hari
+
+_Laporan dibuat otomatis dari Sistem Absensi Digital._`;
+
+            try {
+                await fetch("https://wasenderapi.com/api/send-message", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${WASENDER_API_KEY}`
+                    },
+                    body: JSON.stringify({ to: NOMOR_WA_ADMIN, text: caption })
+                });
+                Swal.fire({ icon: 'success', title: 'Terpesan', text: `Rekap ${nama} berhasil dikirim ke WhatsApp!` });
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: "Gagal mengirim ke WhatsApp. Periksa API Key!" });
+            }
+        };
+
+        document.getElementById('formMaster').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const kelas = document.getElementById('adminKelas').value.trim();
+            const nama = document.getElementById('adminNama').value.trim();
+            const pin = document.getElementById('adminPin').value.trim();
+
+            await supabase.from('master_siswa').insert([{ kelas, nama, pin }]);
+            document.getElementById('formMaster').reset();
+            Swal.fire({ icon: 'success', title: 'Tersimpan', text: 'Data siswa berhasil ditambahkan!' });
+            loadAllData();
+        });
+
+        window.hapusAbsensi = async (id) => {
+            const res = await Swal.fire({
+                title: 'Hapus Catatan?',
+                text: "Data absensi ini akan dihapus permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#334155',
+                confirmButtonText: 'Ya, Hapus!'
+            });
+
+            if (res.isConfirmed) {
+                await supabase.from('absensi').delete().eq('id', id);
+                loadAllData();
+            }
+        };
+    </script>
+</body>
+</html>
