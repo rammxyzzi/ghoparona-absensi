@@ -492,11 +492,14 @@
                 hour: '2-digit', minute: '2-digit', second: '2-digit' 
             });
 
+            // Kirim data lengkap ke tabel absensi Supabase
             const { error: insertError } = await supabase.from('absensi').insert([{
                 nama: siswa.nama,
                 kelas: siswa.kelas,
+                tanggal: tanggalFormatted,
                 waktu: waktuSekarang.toISOString(),
                 status: 'Hadir (Verified AI)',
+                keterangan: 'Tepat Waktu',
                 foto_url: fotoUrl
             }]);
 
@@ -510,8 +513,9 @@
                 .select('*', { count: 'exact', head: true })
                 .eq('nama', siswa.nama);
 
+            // KONFIGURASI WASENDER API
             const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
-            const noHpTujuan = '6283872851796';
+            const noHpTujuan = '6283872851796'; // <-- Ganti dengan nomor tujuan WhatsApp Anda (awali 62)
 
             const pesanWA = 
                 `*📌 NOTIFIKASI ABSENSI SISWA*\n\n` +
