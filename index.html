@@ -518,7 +518,7 @@
 
             // KONFIGURASI WASENDER API
             const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
-            const noHpTujuan = '6283872851796'; // <-- Ganti dengan nomor tujuan WhatsApp Anda (awali 62)
+            const noHpTujuan = '6283872851796'; // Nomor tujuan WhatsApp
 
             const pesanWA = 
                 `*📌 NOTIFIKASI ABSENSI SISWA*\n\n` +
@@ -529,30 +529,49 @@
                 `📊 Total Hadir: *${totalHadir || 1} Kali*\n\n` +
                 `_Status: Hadir Terverifikasi AI System_`;
 
-            // Payload sesuai standar dokumentasi resmi WasenderAPI untuk gambar
-            let payloadData = {
-                to: noHpTujuan,
-                text: pesanWA
-            };
+            // Fungsi Kirim WhatsApp dengan Fallback (Gambar + Teks / Teks Saja)
+            async function kirimKeWhatsApp() {
+                let payloadData = {
+                    to: noHpTujuan,
+                    text: pesanWA
+                };
 
-            // Menyertakan parameter imageUrl jika foto berhasil di-upload
-            if (fotoUrl && fotoUrl !== '-') {
-                payloadData.imageUrl = fotoUrl; 
+                if (fotoUrl && fotoUrl !== '-') {
+                    payloadData.imageUrl = fotoUrl;
+                }
+
+                try {
+                    let response = await fetch('https://www.wasenderapi.com/api/send-message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${WASENDER_API_KEY}`
+                        },
+                        body: JSON.stringify(payloadData)
+                    });
+
+                    let result = await response.json();
+                    console.log('Respon Wasender:', result);
+
+                    // Jika gagal kirim dengan gambar, otomatis coba kirim pesan teksnya saja
+                    if (!result.success && payloadData.imageUrl) {
+                        delete payloadData.imageUrl;
+                        await fetch('https://www.wasenderapi.com/api/send-message', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${WASENDER_API_KEY}`
+                            },
+                            body: JSON.stringify(payloadData)
+                        });
+                    }
+                } catch (e) {
+                    console.error('Wasender Error:', e);
+                }
             }
 
-            fetch('https://wasenderapi.com/api/send-message', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${WASENDER_API_KEY}`
-                },
-                body: JSON.stringify(payloadData)
-            })
-            .then(async res => {
-                const result = await res.json();
-                console.log('Respon Wasender:', result);
-            })
-            .catch(e => console.log('Wasender Error:', e));
+            kirimKeWhatsApp();
+
             Swal.fire({ 
                 icon: 'success', 
                 title: 'Absen Berhasil!', 
