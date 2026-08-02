@@ -447,7 +447,7 @@
             }
         }
 
-        // 6. PROSES ABSEN
+        // 6. PROSES ABSEN & UPLOAD FOTO
         btnTakeAbsen?.addEventListener('click', async () => {
             isScanning = false;
             const sessionData = localStorage.getItem('siswaSession');
@@ -476,11 +476,14 @@
                 .from('foto-absen')
                 .upload(fileName, blob, { contentType: 'image/jpeg' });
 
-            if (!uploadError) {
+            if (uploadError) {
+                console.error('Gagal Upload Foto:', uploadError.message);
+            } else {
                 const { data: publicUrlData } = supabase
                     .storage
                     .from('foto-absen')
                     .getPublicUrl(fileName);
+                
                 fotoUrl = publicUrlData.publicUrl;
             }
 
@@ -492,7 +495,7 @@
                 hour: '2-digit', minute: '2-digit', second: '2-digit' 
             });
 
-            // Kirim data lengkap ke tabel absensi Supabase
+            // Kirim data ke tabel absensi Supabase
             const { error: insertError } = await supabase.from('absensi').insert([{
                 nama: siswa.nama,
                 kelas: siswa.kelas,
@@ -515,7 +518,7 @@
 
             // KONFIGURASI WASENDER API
             const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
-            const noHpTujuan = '6283872851796'; // <-- Ganti dengan nomor tujuan WhatsApp Anda (awali 62)
+            const noHpTujuan = '6281234567890'; // <-- Ganti dengan nomor tujuan WhatsApp Anda (awali 62)
 
             const pesanWA = 
                 `*📌 NOTIFIKASI ABSENSI SISWA*\n\n` +
@@ -523,10 +526,10 @@
                 `🏫 Kelas: *${siswa.kelas}*\n` +
                 `📅 Tanggal: ${tanggalFormatted}\n` +
                 `⏰ Jam: ${jamFormatted} WIB\n` +
-                `📊 Total Hadir: *${totalHadir || 1} Kali*\n` +
-                `🖼️ Bukti Foto: ${fotoUrl}\n\n` +
+                `📊 Total Hadir: *${totalHadir || 1} Kali*\n\n` +
                 `_Status: Hadir Terverifikasi AI System_`;
 
+            // Kirim WhatsApp (termasuk gambar foto jika ada)
             fetch('https://wasenderapi.com/api/send-message', {
                 method: 'POST',
                 headers: {
@@ -536,9 +539,13 @@
                 body: JSON.stringify({
                     to: noHpTujuan,
                     text: pesanWA,
+                    image: fotoUrl !== '-' ? fotoUrl : undefined,
                     media_url: fotoUrl !== '-' ? fotoUrl : undefined
                 })
-            }).catch(e => console.log('Wasender Error:', e));
+            })
+            .then(res => res.json())
+            .then(data => console.log('Respon WA:', data))
+            .catch(e => console.log('Wasender Error:', e));
 
             Swal.fire({ 
                 icon: 'success', 
