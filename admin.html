@@ -3,243 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Kelola Sistem</title>
+    <title>Panel Admin - Rekap Absensi</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #080b11; color: #f1f5f9; min-height: 100vh; padding: 20px; display: flex; justify-content: center; }
-        .admin-container { width: 100%; max-width: 800px; }
+        body { background-color: #080b11; color: #f1f5f9; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: rgba(18, 24, 38, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; outline: none; }
+        .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        .card { background: rgba(18, 24, 38, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
-        .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        label { font-size: 12px; font-weight: 600; color: #94a3b8; }
-        input, textarea, select { padding: 10px 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 10px; font-size: 13px; color: #f8fafc; outline: none; }
-        input:focus, textarea:focus { border-color: #38bdf8; }
-        
-        .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; color: white; transition: 0.2s; }
-        .btn-blue { background: linear-gradient(135deg, #0284c7, #2563eb); }
-        .btn-danger { background: #ef4444; }
-
-        /* Switch Toggle Maintenance */
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        /* TOGGLE SWITCH */
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: #38bdf8; }
-        input:checked + .slider:before { transform: translateX(22px); }
-        
-        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2563eb; }
+        input:checked + .slider:before { transform: translateX(24px); }
     </style>
 </head>
 <body>
 
-    <div class="admin-container">
-        <!-- HEADER ADMIN -->
+    <div class="container">
+        
         <div class="header">
+            <h2>Panel Admin Setting</h2>
+            <button class="btn-danger" id="btnLogoutAdmin">Logout Admin</button>
+        </div>
+
+        <!-- MODE MAINTENANCE TOGGLE (FIX ERROR 409 UPSERT) -->
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h2>⚙️ Panel Kontrol Admin</h2>
-                <p style="font-size: 12px; color: #94a3b8;">Kelola sistem absensi, pengguna, dan konten portal siswa</p>
+                <h4 style="color: #38bdf8;"><i class="fa-solid fa-wrench"></i> Mode Maintenance (Perbaikan Web)</h4>
+                <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Aktifkan untuk menutup akses siswa ke halaman absensi secara sementara.</p>
             </div>
-            <button class="btn btn-danger" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Logout</button>
+            <label class="switch">
+                <input type="checkbox" id="toggleMaintenance">
+                <span class="slider"></span>
+            </label>
         </div>
 
-        <!-- 🛠️ 1. MODE MAINTENANCE -->
+        <!-- TAMBAH DATA SISWA -->
         <div class="card">
-            <h3><i class="fa-solid fa-screwdriver-wrench"></i> Mode Maintenance (Perbaikan Web)</h3>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 13px; color: #cbd5e1;">Aktifkan untuk menutup akses absensi siswa sementara:</span>
-                <label class="switch">
-                    <input type="checkbox" id="toggleMaintenance">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-
-        <!-- 👤 2. TAMBAH MASTER AKUN SISWA (USERNAME & PASSWORD) -->
-        <div class="card">
-            <h3><i class="fa-solid fa-user-plus"></i> Tambah Akun Siswa Baru</h3>
+            <h3 style="font-size: 16px; margin-bottom: 15px; color: #38bdf8;">Tambah Master Data Siswa</h3>
             <form id="formTambahSiswa">
-                <div class="form-grid">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                     <div class="form-group">
                         <label>Kelas</label>
-                        <input type="text" id="addKelas" placeholder="Contoh: XII C++" required>
+                        <input type="text" id="addKelas" placeholder="Contoh: X TKJ" required>
                     </div>
                     <div class="form-group">
-                        <label>Nama Lengkap Siswa</label>
-                        <input type="text" id="addNama" placeholder="Contoh: Ryann" required>
+                        <label>Nama Siswa</label>
+                        <input type="text" id="addNama" placeholder="Contoh: Budi Santoso" required>
                     </div>
                     <div class="form-group">
-                        <label>Username Login</label>
-                        <input type="text" id="addUsername" placeholder="Contoh: ryann123" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Password Login</label>
-                        <input type="password" id="addPassword" placeholder="Masukkan Password" required>
+                        <label>Username / Password</label>
+                        <input type="text" id="addPassword" placeholder="Contoh: 1234" required>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-blue" style="width: 100%; margin-top: 5px;">
-                    <i class="fa-solid fa-floppy-disk"></i> Simpan Akun Siswa
-                </button>
+                <button type="submit" class="btn-primary">Simpan Siswa</button>
             </form>
         </div>
 
-        <!-- 📢 3. TAMBAH INFORMASI SEKOLAH -->
-        <div class="card">
-            <h3><i class="fa-solid fa-bullhorn"></i> Buat Pengumuman / Informasi Sekolah</h3>
-            <form id="formInfoSekolah">
-                <div class="form-group">
-                    <label>Judul Pengumuman</label>
-                    <input type="text" id="infoJudul" placeholder="Contoh: Jadwal UTS Semester Ganjil" required>
-                </div>
-                <div class="form-group">
-                    <label>Isi Informasi</label>
-                    <textarea id="infoIsi" rows="3" placeholder="Tulis rincian pengumuman di sini..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-blue" style="width: 100%;">
-                    <i class="fa-solid fa-paper-plane"></i> Publikasikan Informasi
-                </button>
-            </form>
-        </div>
-
-        <!-- 📸 4. TAMBAH MEMORY SEKOLAH (FOTO + TEKS) -->
-        <div class="card">
-            <h3><i class="fa-solid fa-images"></i> Unggah Memory / Galeri Sekolah</h3>
-            <form id="formMemorySekolah">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Judul Kenangan</label>
-                        <input type="text" id="memJudul" placeholder="Contoh: Classmeeting 2026" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Pilih Foto</label>
-                        <input type="file" id="memFoto" accept="image/*" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Deskripsi Singkat</label>
-                    <input type="text" id="memDeskripsi" placeholder="Deskripsi foto/kegiatan...">
-                </div>
-                <button type="submit" class="btn btn-blue" style="width: 100%;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Unggah Memory
-                </button>
-            </form>
-        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
         import { supabase } from './supabase.js';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadMaintenanceStatus();
-        });
+        const toggleMaintenance = document.getElementById('toggleMaintenance');
 
-        // 1. CEK & UPDATE STATUS MAINTENANCE (MENGGUNAKAN UPSERT)
-        async function loadMaintenanceStatus() {
-            const { data } = await supabase.from('settings').select('*').eq('key', 'maintenance').single();
+        // 1. CEK STATUS MAINTENANCE SAAT AWAL
+        async function getMaintenanceStatus() {
+            const { data } = await supabase.from('settings').select('value').eq('key', 'maintenance').single();
             if (data) {
-                document.getElementById('toggleMaintenance').checked = (data.value === 'true');
+                toggleMaintenance.checked = (data.value === 'true');
             }
         }
+        getMaintenanceStatus();
 
-        document.getElementById('toggleMaintenance').addEventListener('change', async (e) => {
-            const isChecked = e.target.checked;
-            
-            // Gunakan upsert agar tidak muncul error 409 (Conflict)
+        // 2. SIMPAN MAINTENANCE MENGGUNAKAN UPSERT (MENGHINDARI ERROR 409 CONFLICT)
+        toggleMaintenance.addEventListener('change', async (e) => {
+            const status = e.target.checked;
+
             const { error } = await supabase
                 .from('settings')
-                .upsert({ key: 'maintenance', value: String(isChecked) }, { onConflict: 'key' });
+                .upsert({ key: 'maintenance', value: String(status) }, { onConflict: 'key' });
 
             if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal Mengubah Mode!', text: error.message });
-                e.target.checked = !isChecked;
+                Swal.fire({ icon: 'error', title: 'Gagal Update Status!', text: error.message });
+                e.target.checked = !status;
             } else {
                 Swal.fire({ 
                     icon: 'success', 
-                    title: isChecked ? 'Mode Maintenance Aktif!' : 'Mode Maintenance Dimatikan!', 
+                    title: status ? 'Mode Maintenance Aktif!' : 'Mode Maintenance Dimatikan!', 
                     timer: 1500, 
                     showConfirmButton: false 
                 });
             }
         });
 
-        // 2. SIMPAN AKUN SISWA BARU (USERNAME & PASSWORD)
+        // 3. TAMBAH SISWA
         document.getElementById('formTambahSiswa').addEventListener('submit', async (e) => {
             e.preventDefault();
             const kelas = document.getElementById('addKelas').value.trim();
             const nama = document.getElementById('addNama').value.trim();
-            const username = document.getElementById('addUsername').value.trim().toLowerCase();
             const password = document.getElementById('addPassword').value.trim();
+            const username = nama.toLowerCase().replace(/\s+/g, '');
 
-            const { error } = await supabase.from('master_siswa').insert([{
-                kelas, nama, username, password
-            }]);
-
-            if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal Menyimpan Akun', text: error.message });
-            } else {
-                Swal.fire({ icon: 'success', title: 'Akun Siswa Berhasil Dibuat!' });
-                e.target.reset();
-            }
-        });
-
-        // 3. PUBLIKASI INFORMASI SEKOLAH
-        document.getElementById('formInfoSekolah').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const judul = document.getElementById('infoJudul').value.trim();
-            const isi = document.getElementById('infoIsi').value.trim();
-
-            const { error } = await supabase.from('informasi_sekolah').insert([{ judul, isi }]);
+            const { error } = await supabase.from('master_siswa').insert([{ kelas, nama, username, password }]);
 
             if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal Membuat Informasi', text: error.message });
+                Swal.fire({ icon: 'error', title: 'Gagal Menambah Siswa', text: error.message });
             } else {
-                Swal.fire({ icon: 'success', title: 'Informasi Terpublikasi!' });
-                e.target.reset();
+                Swal.fire({ icon: 'success', title: 'Siswa Berhasil Ditambahkan!' });
+                document.getElementById('formTambahSiswa').reset();
             }
         });
 
-        // 4. UNGGAH MEMORY SEKOLAH
-        document.getElementById('formMemorySekolah').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const judul = document.getElementById('memJudul').value.trim();
-            const deskripsi = document.getElementById('memDeskripsi').value.trim();
-            const file = document.getElementById('memFoto').files[0];
-
-            if (!file) return;
-
-            const fileName = `memory_${Date.now()}_${file.name}`;
-            const { error: uploadError } = await supabase.storage.from('foto-absensi').upload(fileName, file);
-
-            if (uploadError) {
-                Swal.fire({ icon: 'error', title: 'Gagal Upload Foto', text: uploadError.message });
-                return;
-            }
-
-            const { data: publicUrlData } = supabase.storage.from('foto-absensi').getPublicUrl(fileName);
-
-            const { error: insertError } = await supabase.from('memory_sekolah').insert([{
-                judul,
-                deskripsi,
-                foto_url: publicUrlData.publicUrl
-            }]);
-
-            if (insertError) {
-                Swal.fire({ icon: 'error', title: 'Gagal Simpan Memory', text: insertError.message });
-            } else {
-                Swal.fire({ icon: 'success', title: 'Memory Berhasil Diunggah!' });
-                e.target.reset();
-            }
+        document.getElementById('btnLogoutAdmin').addEventListener('click', () => {
+            location.href = 'index.html';
         });
-
-        window.logoutAdmin = () => {
-            window.location.href = 'index.html';
-        };
     </script>
 </body>
 </html>
