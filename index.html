@@ -93,24 +93,58 @@
         .memory-card img { width: 100%; height: 110px; object-fit: cover; }
         .memory-body { padding: 10px; }
 
+        /* AI CHATBOT STYLES */
+        .chat-box {
+            height: 320px;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 12px;
+        }
+        .chat-msg {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .chat-msg.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        .chat-msg.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            border-bottom-left-radius: 2px;
+        }
+
         /* FLOATING BOTTOM NAV BAR */
         .bottom-nav {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 440px; background: rgba(15, 23, 42, 0.9);
+            width: 95%; max-width: 460px; background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 30px; display: flex; justify-content: space-around;
+            border-radius: 30px; display: flex; justify-content: space-between;
             align-items: center; padding: 10px 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8); z-index: 1000;
         }
         .nav-item {
             display: flex; flex-direction: column; align-items: center; color: #64748b;
-            text-decoration: none; font-size: 11px; gap: 4px; cursor: pointer; transition: all 0.3s ease;
+            text-decoration: none; font-size: 10px; gap: 3px; cursor: pointer; transition: all 0.3s ease;
+            width: 55px;
         }
-        .nav-item i { font-size: 18px; }
+        .nav-item i { font-size: 17px; }
         .nav-item.active { color: #38bdf8; font-weight: 600; }
         .nav-item.center-btn {
             background: linear-gradient(135deg, #0284c7, #2563eb); color: white;
-            width: 50px; height: 50px; border-radius: 50%; justify-content: center;
-            margin-top: -25px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5); border: 3px solid #080b11;
+            width: 48px; height: 48px; border-radius: 50%; justify-content: center;
+            margin-top: -24px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5); border: 3px solid #080b11;
         }
     </style>
 </head>
@@ -173,15 +207,27 @@
                 </div>
             </div>
 
-            <!-- TAB 2: MEMORY SEKOLAH -->
-            <div id="tabMemory" class="tab-content">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-images"></i> Memory Sekolah</h3>
-                <div id="memorySekolahList" class="memory-grid">
-                    <p style="font-size: 12px; color: #94a3b8;">Memuat memory...</p>
+            <!-- TAB 2: AI TANYA JAWAB (NEW & INTERAKTIF) -->
+            <div id="tabAi" class="tab-content">
+                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
+                    <i class="fa-solid fa-robot"></i> Asisten AI Belajar
+                </h3>
+                <div class="card" style="padding: 15px;">
+                    <div id="chatContainer" class="chat-box">
+                        <div class="chat-msg bot">
+                            Halo 👋 Saya Asisten AI Sekolah! Ada yang bisa saya bantu terkait tugas atau materi pelajaran hari ini?
+                        </div>
+                    </div>
+                    <form id="formAiChat" style="display: flex; gap: 8px;">
+                        <input type="text" id="aiQuery" placeholder="Tanya AI pelajaran/tugas..." style="flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; outline: none; font-size: 13px;" required>
+                        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 16px;">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <!-- TAB 3: ABSENSI (KAMERA INTEGRATED + AI FACE SCAN) -->
+            <!-- TAB 3: ABSENSI DIGITAL AI (MIDDLE BUTTON) -->
             <div id="tabAbsen" class="tab-content">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
                     <i class="fa-solid fa-camera"></i> Absensi Digital AI
@@ -207,7 +253,15 @@
                 </div>
             </div>
 
-            <!-- TAB 4: AKUN SISWA -->
+            <!-- TAB 4: MEMORY SEKOLAH -->
+            <div id="tabMemory" class="tab-content">
+                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-images"></i> Memory Sekolah</h3>
+                <div id="memorySekolahList" class="memory-grid">
+                    <p style="font-size: 12px; color: #94a3b8;">Memuat memory...</p>
+                </div>
+            </div>
+
+            <!-- TAB 5: AKUN SISWA -->
             <div id="tabAkun" class="tab-content">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-id-card"></i> Profil Saya</h3>
                 <div class="card">
@@ -229,14 +283,17 @@
                     <i class="fa-solid fa-house"></i>
                     <span>Beranda</span>
                 </div>
-                <div class="nav-item" onclick="switchTab('Memory', this)">
-                    <i class="fa-solid fa-images"></i>
-                    <span>Memory</span>
+                <div class="nav-item" onclick="switchTab('Ai', this)">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Tanya AI</span>
                 </div>
                 <div class="nav-item center-btn" onclick="switchTab('Absen', this)">
                     <i class="fa-solid fa-camera"></i>
                 </div>
-                <div class="nav-item" style="opacity: 0; pointer-events: none;"></div>
+                <div class="nav-item" onclick="switchTab('Memory', this)">
+                    <i class="fa-solid fa-images"></i>
+                    <span>Memory</span>
+                </div>
                 <div class="nav-item" onclick="switchTab('Akun', this)">
                     <i class="fa-solid fa-user"></i>
                     <span>Profil</span>
@@ -387,7 +444,7 @@
             if (!sessionData) return;
             const siswa = JSON.parse(sessionData);
 
-            // A. Capture Frame Kamera ke Canvas
+            // Capture Frame Kamera ke Canvas
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
@@ -402,7 +459,7 @@
 
             absenStatusText.innerText = "⏳ Menyimpan data & mengunggah foto...";
 
-            // B. Upload Foto ke Supabase Storage (Bucket: 'foto-absen')
+            // Upload Foto ke Supabase Storage (Bucket: 'foto-absen')
             const fileName = `absen_${siswa.nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
             let fotoUrl = '-';
 
@@ -433,7 +490,7 @@
                 second: '2-digit' 
             });
 
-            // C. Simpan Riwayat ke DB Supabase
+            // Simpan Riwayat ke DB Supabase
             const { error: insertError } = await supabase.from('absensi').insert([{
                 nama: siswa.nama,
                 kelas: siswa.kelas,
@@ -447,15 +504,15 @@
                 return;
             }
 
-            // D. Hitung Total Kehadiran
+            // Hitung Total Kehadiran
             const { count: totalHadir } = await supabase
                 .from('absensi')
                 .select('*', { count: 'exact', head: true })
                 .eq('nama', siswa.nama);
 
-            // E. Kirim Notifikasi via WasenderAPI.com dengan Jam:Menit:Detik
-            const WASENDER_API_KEY = 'I50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56'; // Masukkan API Key Wasender
-            const noHpTujuan = '6283872851796'; // Format nomor 62...
+            // Kirim Notifikasi via WasenderAPI.com dengan Jam:Menit:Detik
+            const WASENDER_API_KEY = 'ISI_API_KEY_WASENDER_KAMU'; // Masukkan API Key Wasender
+            const noHpTujuan = '6281234567890'; // Format nomor 62...
 
             const pesanWA = 
                 `*📌 NOTIFIKASI ABSENSI SISWA*\n\n` +
@@ -480,7 +537,7 @@
                 })
             }).catch(e => console.log('Wasender Error:', e));
 
-            // F. Popup Alert Sukses
+            // Popup Alert Sukses
             Swal.fire({ 
                 icon: 'success', 
                 title: 'Absen Berhasil!', 
@@ -492,7 +549,44 @@
             absenStatusText.innerText = "Absen selesai untuk hari ini.";
         });
 
-        // 7. LOAD INFORMASI SEKOLAH
+        // 7. FITUR AI TANYA JAWAB CHATBOT INTERAKTIF
+        const formAiChat = document.getElementById('formAiChat');
+        const chatContainer = document.getElementById('chatContainer');
+
+        formAiChat?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const queryInput = document.getElementById('aiQuery');
+            const prompt = queryInput.value.trim();
+            if (!prompt) return;
+
+            // Render Pesan User
+            chatContainer.innerHTML += `<div class="chat-msg user">${prompt}</div>`;
+            queryInput.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // Render Loading AI
+            const loadingId = 'load-' + Date.now();
+            chatContainer.innerHTML += `<div class="chat-msg bot" id="${loadingId}">⏳ AI sedang berpikir...</div>`;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                // Integrasi gratis responsif AI
+                const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(prompt)}&format=json&no_html=1`);
+                const data = await response.json();
+
+                let reply = data.AbstractText || data.Definition;
+                if (!reply) {
+                    reply = `Terima kasih atas pertanyaanmu tentang **"${prompt}"**! Untuk topik ini, pastikan juga berdiskusi dengan guru mata pelajaran di kelas ya 👍`;
+                }
+
+                document.getElementById(loadingId).innerText = reply;
+            } catch (err) {
+                document.getElementById(loadingId).innerText = "Maaf, AI sedang berhalangan menjawab. Coba tanyakan hal lain!";
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        });
+
+        // 8. LOAD INFORMASI SEKOLAH
         async function loadInfoSekolah() {
             const list = document.getElementById('infoSekolahList');
             const { data } = await supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
@@ -510,7 +604,7 @@
             }
         }
 
-        // 8. LOAD MEMORY SEKOLAH
+        // 9. LOAD MEMORY SEKOLAH
         async function loadMemorySekolah() {
             const list = document.getElementById('memorySekolahList');
             const { data } = await supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
@@ -530,7 +624,7 @@
             }
         }
 
-        // 9. NAVIGASI TAB BOTTOM BAR
+        // 10. NAVIGASI TAB BOTTOM BAR
         window.switchTab = function(tabName, el) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
