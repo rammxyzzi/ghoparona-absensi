@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Siswa Modern</title>
+    <title>Login - Account</title>
     <!-- SweetAlert2 & FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -155,19 +155,19 @@
         <!-- ================= 1. HALAMAN LOGIN SISWA ================= -->
         <div id="loginScreen" class="card" style="margin-top: 50px;">
             <div style="font-size: 40px; margin-bottom: 10px; text-align: center;">🎓</div>
-            <h2 style="font-size: 20px; margin-bottom: 6px; text-align: center;">Login Portal Siswa</h2>
-            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 20px; text-align: center;">Masukkan Username dan Password akun Anda</p>
+            <h2 style="font-size: 20px; margin-bottom: 6px; text-align: center;">Login - Account</h2>
+            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 20px; text-align: center;">Masukkan Username dan Password akun kamu.</p>
 
             <form id="formLogin">
                 <div class="form-group">
                     <label>Username</label>
-                    <input type="text" id="loginUsername" placeholder="Masukkan Username" required>
+                    <input type="text" id="loginUsername" placeholder="Input Username" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="loginPassword" placeholder="Masukkan Password" required>
+                    <input type="password" id="loginPassword" placeholder="Input Password" required>
                 </div>
-                <button type="submit" class="btn-primary">Masuk Dashboard &rarr;</button>
+                <button type="submit" class="btn-primary">Confirm &rarr;</button>
             </form>
         </div>
 
@@ -179,7 +179,7 @@
                 <div class="user-info">
                     <div class="avatar" id="userAvatar">RY</div>
                     <div>
-                        <div style="font-size: 12px; color: #94a3b8;">Selamat Datang 👋</div>
+                        <div style="font-size: 12px; color: #94a3b8;">Hola 👋</div>
                         <div style="font-weight: 700;" id="userName">Siswa</div>
                     </div>
                 </div>
@@ -244,11 +244,11 @@
                             <i class="fa-solid fa-video"></i> Buka Kamera
                         </button>
                         <button id="btnTakeAbsen" class="btn-primary" style="background: linear-gradient(135deg, #22c55e, #16a34a); display: none;" disabled>
-                            <i class="fa-solid fa-check-circle"></i> Kirim Absen Sekarang
+                            <i class="fa-solid fa-check-circle"></i> Confirm Absen
                         </button>
                     </div>
                     <p id="absenStatusText" style="font-size: 12px; color: #94a3b8; margin-top: 10px;">
-                        ⏳ Memuat AI Wajah...
+                        ⏳ A moment ...
                     </p>
                 </div>
             </div>
@@ -327,11 +327,11 @@
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
                 isFaceModelLoaded = true;
-                if (absenStatusText) absenStatusText.innerText = "Sistem AI Siap! Klik 'Buka Kamera'.";
+                if (absenStatusText) absenStatusText.innerText = "Kamera ready Klik 'Buka Kamera'.";
             } catch (err) {
-                console.error("Gagal load AI:", err);
+                console.error("Gagal load Kamera:", err);
                 isFaceModelLoaded = false;
-                if (absenStatusText) absenStatusText.innerText = "⚡ Mode Manual: Klik 'Buka Kamera' lalu Kirim Absen.";
+                if (absenStatusText) absenStatusText.innerText = "⚡ InfoManual: Klik 'Buka Kamera' lalu Kirim Absen.";
             }
         }
 
@@ -521,7 +521,7 @@
             const noHpTujuan = '6283872851796'; // Nomor tujuan WhatsApp
 
             const pesanWA = 
-                `*📌 NOTIFIKASI ABSENSI SISWA*\n\n` +
+                `*📌 ABSENSI SISWA*\n\n` +
                 `👤 Nama: *${siswa.nama}*\n` +
                 `🏫 Kelas: *${siswa.kelas}*\n` +
                 `📅 Tanggal: ${tanggalFormatted}\n` +
