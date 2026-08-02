@@ -207,7 +207,7 @@
                 </div>
             </div>
 
-            <!-- TAB 2: AI TANYA JAWAB (NEW & INTERAKTIF) -->
+            <!-- TAB 2: AI TANYA JAWAB -->
             <div id="tabAi" class="tab-content">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
                     <i class="fa-solid fa-robot"></i> Asisten AI Belajar
@@ -227,7 +227,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: ABSENSI DIGITAL AI (MIDDLE BUTTON) -->
+            <!-- TAB 3: ABSENSI DIGITAL AI -->
             <div id="tabAbsen" class="tab-content">
                 <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
                     <i class="fa-solid fa-camera"></i> Absensi Digital AI
@@ -310,6 +310,7 @@
 
         let videoStream = null;
         let isFaceModelLoaded = false;
+        let isScanning = false;
 
         const video = document.getElementById('webcam');
         const btnStartCamera = document.getElementById('btnStartCamera');
@@ -321,16 +322,16 @@
             loadAIModels();
         });
 
-        // 1. PRELOAD AI FACE DETECTION DI LATAR BELAKANG
+        // 1. PRELOAD AI FACE DETECTION
         async function loadAIModels() {
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
                 isFaceModelLoaded = true;
-                if (absenStatusText) absenStatusText.innerText = "Klik 'Buka Kamera' untuk bersiap absen.";
+                if (absenStatusText) absenStatusText.innerText = "Sistem AI Siap! Klik 'Buka Kamera'.";
             } catch (err) {
                 console.error("Gagal load AI:", err);
                 isFaceModelLoaded = false;
-                if (absenStatusText) absenStatusText.innerText = "⚡ Mode Cepat Aktif. Klik 'Buka Kamera' untuk absen.";
+                if (absenStatusText) absenStatusText.innerText = "⚡ Mode Manual: Klik 'Buka Kamera' lalu Kirim Absen.";
             }
         }
 
@@ -387,64 +388,72 @@
             localStorage.removeItem('siswaSession');
             location.reload();
         }
-        document.getElementById('btnLogout').addEventListener('click', logout);
-        document.getElementById('btnExit').addEventListener('click', logout);
+        document.getElementById('btnLogout')?.addEventListener('click', logout);
+        document.getElementById('btnExit')?.addEventListener('click', logout);
 
-        // 5. BUKA KAMERA & PROSES SCAN AI
+        // 5. BUKA KAMERA & SCAN AI
         btnStartCamera?.addEventListener('click', async () => {
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: "user",
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
+                        width: { ideal: 480 },
+                        height: { ideal: 360 }
                     } 
                 });
                 video.srcObject = videoStream;
-                btnStartCamera.style.display = 'none';
-                btnTakeAbsen.style.display = 'block';
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    btnStartCamera.style.display = 'none';
+                    btnTakeAbsen.style.display = 'block';
 
-                if (isFaceModelLoaded) {
-                    absenStatusText.innerText = "🔍 AI Memindai Wajah...";
-                    deteksiWajahDenganAI();
-                } else {
-                    absenStatusText.innerHTML = `<span style="color: #4ade80;">Posisikan wajah dengan jelas lalu tekan Kirim.</span>`;
-                    btnTakeAbsen.disabled = false;
-                }
+                    if (isFaceModelLoaded) {
+                        isScanning = true;
+                        absenStatusText.innerText = "🔍 AI Memindai Wajah... Posisikan Wajah ke Kamera";
+                        deteksiWajahDenganAI();
+                    } else {
+                        absenStatusText.innerHTML = `<span style="color: #4ade80;">Posisikan wajah dengan jelas lalu tekan Kirim.</span>`;
+                        btnTakeAbsen.disabled = false;
+                    }
+                };
+
             } catch (err) {
                 Swal.fire({ icon: 'error', title: 'Akses Kamera Ditolak', text: 'Mohon izinkan akses kamera di browser Anda.' });
             }
         });
 
-        // FUNGSI LOOPER SCAN WAJAH AI
+        // REALTIME LOOP DETEKSI WAJAH AI
         async function deteksiWajahDenganAI() {
-            if (!videoStream || video.paused || video.ended || !isFaceModelLoaded) return;
+            if (!isScanning || !videoStream || video.paused || video.ended) return;
 
             try {
-                const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+                const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 });
                 const detections = await faceapi.detectAllFaces(video, options);
 
-                if (detections.length > 0) {
-                    absenStatusText.innerHTML = `<span style="color: #4ade80; font-weight: bold;">✅ Wajah Terdeteksi AI! Silakan Kirim.</span>`;
+                if (detections && detections.length > 0) {
+                    absenStatusText.innerHTML = `<span style="color: #4ade80; font-weight: bold;">✅ WAJAH TERDETEKSI! SILAKAN KIRIM</span>`;
                     btnTakeAbsen.disabled = false;
                 } else {
-                    absenStatusText.innerHTML = `<span style="color: #ef4444;">❌ Wajah Tidak Ditemukan! Posisikan ke Kamera.</span>`;
+                    absenStatusText.innerHTML = `<span style="color: #f59e0b;">⏳ Memindai Wajah... Dekatkan Wajah ke Kamera</span>`;
                     btnTakeAbsen.disabled = true;
                 }
             } catch (e) {
                 btnTakeAbsen.disabled = false;
             }
 
-            setTimeout(deteksiWajahDenganAI, 800);
+            if (isScanning) {
+                setTimeout(deteksiWajahDenganAI, 300);
+            }
         }
 
-        // 6. PROSES ABSEN + DETIK JAM PRESISI + WASENDERAPI.COM
+        // 6. PROSES ABSEN
         btnTakeAbsen?.addEventListener('click', async () => {
+            isScanning = false;
             const sessionData = localStorage.getItem('siswaSession');
             if (!sessionData) return;
             const siswa = JSON.parse(sessionData);
 
-            // Capture Frame Kamera ke Canvas
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
@@ -459,7 +468,6 @@
 
             absenStatusText.innerText = "⏳ Menyimpan data & mengunggah foto...";
 
-            // Upload Foto ke Supabase Storage (Bucket: 'foto-absen')
             const fileName = `absen_${siswa.nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
             let fotoUrl = '-';
 
@@ -476,21 +484,14 @@
                 fotoUrl = publicUrlData.publicUrl;
             }
 
-            // FORMAT WAKTU DETAIL DENGAN DETIK
             const waktuSekarang = new Date();
             const tanggalFormatted = waktuSekarang.toLocaleDateString('id-ID', { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
             });
             const jamFormatted = waktuSekarang.toLocaleTimeString('id-ID', { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
+                hour: '2-digit', minute: '2-digit', second: '2-digit' 
             });
 
-            // Simpan Riwayat ke DB Supabase
             const { error: insertError } = await supabase.from('absensi').insert([{
                 nama: siswa.nama,
                 kelas: siswa.kelas,
@@ -504,15 +505,13 @@
                 return;
             }
 
-            // Hitung Total Kehadiran
             const { count: totalHadir } = await supabase
                 .from('absensi')
                 .select('*', { count: 'exact', head: true })
                 .eq('nama', siswa.nama);
 
-            // Kirim Notifikasi via WasenderAPI.com dengan Jam:Menit:Detik
-            const WASENDER_API_KEY = 'ISI_API_KEY_WASENDER_KAMU'; // Masukkan API Key Wasender
-            const noHpTujuan = '6281234567890'; // Format nomor 62...
+            const WASENDER_API_KEY = 'ISI_API_KEY_WASENDER_KAMU';
+            const noHpTujuan = '6281234567890';
 
             const pesanWA = 
                 `*📌 NOTIFIKASI ABSENSI SISWA*\n\n` +
@@ -537,7 +536,6 @@
                 })
             }).catch(e => console.log('Wasender Error:', e));
 
-            // Popup Alert Sukses
             Swal.fire({ 
                 icon: 'success', 
                 title: 'Absen Berhasil!', 
@@ -549,7 +547,7 @@
             absenStatusText.innerText = "Absen selesai untuk hari ini.";
         });
 
-        // 7. FITUR AI TANYA JAWAB CHATBOT INTERAKTIF
+        // 7. FITUR AI CHATBOT INTERAKTIF
         const formAiChat = document.getElementById('formAiChat');
         const chatContainer = document.getElementById('chatContainer');
 
@@ -559,24 +557,21 @@
             const prompt = queryInput.value.trim();
             if (!prompt) return;
 
-            // Render Pesan User
             chatContainer.innerHTML += `<div class="chat-msg user">${prompt}</div>`;
             queryInput.value = '';
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            // Render Loading AI
             const loadingId = 'load-' + Date.now();
             chatContainer.innerHTML += `<div class="chat-msg bot" id="${loadingId}">⏳ AI sedang berpikir...</div>`;
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
-                // Integrasi gratis responsif AI
                 const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(prompt)}&format=json&no_html=1`);
                 const data = await response.json();
 
                 let reply = data.AbstractText || data.Definition;
                 if (!reply) {
-                    reply = `Terima kasih atas pertanyaanmu tentang **"${prompt}"**! Untuk topik ini, pastikan juga berdiskusi dengan guru mata pelajaran di kelas ya 👍`;
+                    reply = `Terima kasih atas pertanyaanmu tentang **"${prompt}"**! Jangan lupa tanyakan juga ke guru pengampu mata pelajaran terkait ya 👍`;
                 }
 
                 document.getElementById(loadingId).innerText = reply;
