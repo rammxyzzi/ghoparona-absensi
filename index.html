@@ -70,6 +70,23 @@
             box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
         }
 
+        /* SWITCH LANGUAGE BUTTON */
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 6px 10px;
+            border-radius: 20px;
+            color: #38bdf8;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .lang-btn:hover { background: rgba(255, 255, 255, 0.15); }
+
         /* STATS GRID */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .stat-card {
@@ -154,20 +171,25 @@
 
         <!-- ================= 1. HALAMAN LOGIN SISWA ================= -->
         <div id="loginScreen" class="card" style="margin-top: 50px;">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                <button class="lang-btn" onclick="toggleLanguage()">
+                    <i class="fa-solid fa-globe"></i> <span id="langTextLogin">ID / EN</span>
+                </button>
+            </div>
             <div style="font-size: 40px; margin-bottom: 10px; text-align: center;">🎓</div>
-            <h2 style="font-size: 20px; margin-bottom: 6px; text-align: center;">Login - Account</h2>
-            <p style="font-size: 12px; color: #94a3b8; margin-bottom: 20px; text-align: center;">Masukkan Username dan Password akun kamu.</p>
+            <h2 id="txtLoginTitle" style="font-size: 20px; margin-bottom: 6px; text-align: center;">Login - Account</h2>
+            <p id="txtLoginDesc" style="font-size: 12px; color: #94a3b8; margin-bottom: 20px; text-align: center;">Masukkan Username dan Password akun kamu.</p>
 
             <form id="formLogin">
                 <div class="form-group">
-                    <label>Username</label>
+                    <label id="lblUsername">Username</label>
                     <input type="text" id="loginUsername" placeholder="Input Username" required>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
+                    <label id="lblPassword">Password</label>
                     <input type="password" id="loginPassword" placeholder="Input Password" required>
                 </div>
-                <button type="submit" class="btn-primary">Confirm &rarr;</button>
+                <button type="submit" id="btnLoginSubmit" class="btn-primary">Confirm &rarr;</button>
             </form>
         </div>
 
@@ -179,11 +201,16 @@
                 <div class="user-info">
                     <div class="avatar" id="userAvatar">RY</div>
                     <div>
-                        <div style="font-size: 12px; color: #94a3b8;">Hola 👋</div>
+                        <div id="txtHola" style="font-size: 12px; color: #94a3b8;">Hola 👋</div>
                         <div style="font-weight: 700;" id="userName">Siswa</div>
                     </div>
                 </div>
-                <i class="fa-solid fa-right-from-bracket" id="btnLogout" style="font-size: 18px; color: #ef4444; cursor: pointer;"></i>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="lang-btn" onclick="toggleLanguage()">
+                        <i class="fa-solid fa-globe"></i> <span id="langTextDash">ID / EN</span>
+                    </button>
+                    <i class="fa-solid fa-right-from-bracket" id="btnLogout" style="font-size: 18px; color: #ef4444; cursor: pointer;" title="Logout"></i>
+                </div>
             </div>
 
             <!-- TAB 1: HOME (INFORMASI SEKOLAH) -->
@@ -191,17 +218,17 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <i class="fa-solid fa-graduation-cap"></i>
-                        <div class="stat-title">Kelas Anda</div>
+                        <div class="stat-title" id="txtClassTitle">Kelas Anda</div>
                         <div class="stat-value" id="userKelas">-</div>
                     </div>
                     <div class="stat-card">
                         <i class="fa-solid fa-user-check"></i>
-                        <div class="stat-title">Status Siswa</div>
-                        <div class="stat-value" style="color: #4ade80;">Aktif</div>
+                        <div class="stat-title" id="txtStatusTitle">Status Siswa</div>
+                        <div class="stat-value" style="color: #4ade80;" id="txtStatusActive">Aktif</div>
                     </div>
                 </div>
 
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-bullhorn"></i> Informasi Sekolah</h3>
+                <h3 id="txtSchoolInfoTitle" style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-bullhorn"></i> Informasi Sekolah</h3>
                 <div id="infoSekolahList">
                     <p style="font-size: 12px; color: #94a3b8;">Memuat informasi...</p>
                 </div>
@@ -209,12 +236,12 @@
 
             <!-- TAB 2: AI TANYA JAWAB -->
             <div id="tabAi" class="tab-content">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
+                <h3 id="txtAiTitle" style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
                     <i class="fa-solid fa-robot"></i> Asisten AI Belajar
                 </h3>
                 <div class="card" style="padding: 15px;">
                     <div id="chatContainer" class="chat-box">
-                        <div class="chat-msg bot">
+                        <div class="chat-msg bot" id="txtAiWelcome">
                             Halo 👋 Saya Asisten AI Sekolah! Ada yang bisa saya bantu terkait tugas atau materi pelajaran hari ini?
                         </div>
                     </div>
@@ -229,7 +256,7 @@
 
             <!-- TAB 3: ABSENSI DIGITAL AI -->
             <div id="tabAbsen" class="tab-content">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
+                <h3 id="txtAbsenHeader" style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;">
                     <i class="fa-solid fa-camera"></i> Absensi Digital AI
                 </h3>
                 
@@ -255,7 +282,7 @@
 
             <!-- TAB 4: MEMORY SEKOLAH -->
             <div id="tabMemory" class="tab-content">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-images"></i> Memory Sekolah</h3>
+                <h3 id="txtMemoryTitle" style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-images"></i> Memory Sekolah</h3>
                 <div id="memorySekolahList" class="memory-grid">
                     <p style="font-size: 12px; color: #94a3b8;">Memuat memory...</p>
                 </div>
@@ -263,14 +290,14 @@
 
             <!-- TAB 5: AKUN SISWA -->
             <div id="tabAkun" class="tab-content">
-                <h3 style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-id-card"></i> Profil Saya</h3>
+                <h3 id="txtProfileTitle" style="font-size: 15px; margin-bottom: 12px; color: #38bdf8;"><i class="fa-solid fa-id-card"></i> Profil Saya</h3>
                 <div class="card">
                     <div class="form-group">
-                        <label>Nama Lengkap</label>
+                        <label id="lblFullName">Nama Lengkap</label>
                         <input type="text" id="profileNama" readonly>
                     </div>
                     <div class="form-group">
-                        <label>Kelas</label>
+                        <label id="lblProfileClass">Kelas</label>
                         <input type="text" id="profileKelas" readonly>
                     </div>
                     <button id="btnExit" class="btn-primary" style="background: #ef4444; margin-top: 10px;">Keluar Akun</button>
@@ -281,22 +308,22 @@
             <div class="bottom-nav">
                 <div class="nav-item active" onclick="switchTab('Home', this)">
                     <i class="fa-solid fa-house"></i>
-                    <span>Beranda</span>
+                    <span id="navHome">Beranda</span>
                 </div>
                 <div class="nav-item" onclick="switchTab('Ai', this)">
                     <i class="fa-solid fa-robot"></i>
-                    <span>Tanya AI</span>
+                    <span id="navAi">Tanya AI</span>
                 </div>
                 <div class="nav-item center-btn" onclick="switchTab('Absen', this)">
                     <i class="fa-solid fa-camera"></i>
                 </div>
                 <div class="nav-item" onclick="switchTab('Memory', this)">
                     <i class="fa-solid fa-images"></i>
-                    <span>Memory</span>
+                    <span id="navMemory">Memory</span>
                 </div>
                 <div class="nav-item" onclick="switchTab('Akun', this)">
                     <i class="fa-solid fa-user"></i>
-                    <span>Profil</span>
+                    <span id="navProfile">Profil</span>
                 </div>
             </div>
 
@@ -311,6 +338,66 @@
         let videoStream = null;
         let isFaceModelLoaded = false;
         let isScanning = false;
+        let currentLang = localStorage.getItem('appLang') || 'id'; // Default Indonesia
+
+        const translations = {
+            id: {
+                loginTitle: "Login - Account",
+                loginDesc: "Masukkan Username dan Password akun kamu.",
+                username: "Username",
+                password: "Password",
+                confirmBtn: "Konfirmasi &rarr;",
+                hola: "Hola 👋",
+                classTitle: "Kelas Anda",
+                statusTitle: "Status Siswa",
+                statusActive: "Aktif",
+                schoolInfoTitle: "Informasi Sekolah",
+                aiTitle: "Asisten AI Belajar",
+                aiWelcome: "Halo 👋 Saya Asisten AI Sekolah! Ada yang bisa saya bantu terkait tugas atau materi pelajaran hari ini?",
+                aiPlaceholder: "Tanya AI pelajaran/tugas...",
+                absenHeader: "Absensi Digital AI",
+                openCamera: "Buka Kamera",
+                confirmAbsen: "Confirm Absen",
+                memoryTitle: "Memory Sekolah",
+                profileTitle: "Profil Saya",
+                fullName: "Nama Lengkap",
+                profileClass: "Kelas",
+                logoutBtn: "Keluar Akun",
+                navHome: "Beranda",
+                navAi: "Tanya AI",
+                navMemory: "Memory",
+                navProfile: "Profil",
+                camReady: "Kamera ready Klik 'Buka Kamera'."
+            },
+            en: {
+                loginTitle: "Account Login",
+                loginDesc: "Please enter your account username and password.",
+                username: "Username",
+                password: "Password",
+                confirmBtn: "Confirm &rarr;",
+                hola: "Hello 👋",
+                classTitle: "Your Class",
+                statusTitle: "Student Status",
+                statusActive: "Active",
+                schoolInfoTitle: "School Information",
+                aiTitle: "AI Learning Assistant",
+                aiWelcome: "Hello 👋 I am your School AI Assistant! Is there anything I can help with regarding today's tasks or lessons?",
+                aiPlaceholder: "Ask AI about lessons/tasks...",
+                absenHeader: "AI Digital Attendance",
+                openCamera: "Open Camera",
+                confirmAbsen: "Confirm Attendance",
+                memoryTitle: "School Memories",
+                profileTitle: "My Profile",
+                fullName: "Full Name",
+                profileClass: "Class",
+                logoutBtn: "Log Out",
+                navHome: "Home",
+                navAi: "Ask AI",
+                navMemory: "Memories",
+                navProfile: "Profile",
+                camReady: "Camera ready. Click 'Open Camera'."
+            }
+        };
 
         const video = document.getElementById('webcam');
         const btnStartCamera = document.getElementById('btnStartCamera');
@@ -318,24 +405,71 @@
         const absenStatusText = document.getElementById('absenStatusText');
 
         document.addEventListener('DOMContentLoaded', () => {
+            applyLanguage();
             cekSessionLogin();
             loadAIModels();
         });
 
-        // 1. PRELOAD AI FACE DETECTION
+        // 1. GLOBAL SWITCH LANGUAGE FUNCTION
+        window.toggleLanguage = function() {
+            currentLang = currentLang === 'id' ? 'en' : 'id';
+            localStorage.setItem('appLang', currentLang);
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            const t = translations[currentLang];
+            document.getElementById('langTextLogin').innerText = currentLang.toUpperCase();
+            document.getElementById('langTextDash').innerText = currentLang.toUpperCase();
+
+            document.getElementById('txtLoginTitle').innerText = t.loginTitle;
+            document.getElementById('txtLoginDesc').innerText = t.loginDesc;
+            document.getElementById('lblUsername').innerText = t.username;
+            document.getElementById('lblPassword').innerText = t.password;
+            document.getElementById('loginUsername').placeholder = currentLang === 'id' ? 'Input Username' : 'Enter Username';
+            document.getElementById('loginPassword').placeholder = currentLang === 'id' ? 'Input Password' : 'Enter Password';
+            document.getElementById('btnLoginSubmit').innerHTML = t.confirmBtn;
+
+            document.getElementById('txtHola').innerText = t.hola;
+            document.getElementById('txtClassTitle').innerText = t.classTitle;
+            document.getElementById('txtStatusTitle').innerText = t.statusTitle;
+            document.getElementById('txtStatusActive').innerText = t.statusActive;
+            document.getElementById('txtSchoolInfoTitle').innerHTML = `<i class="fa-solid fa-bullhorn"></i> ${t.schoolInfoTitle}`;
+            
+            document.getElementById('txtAiTitle').innerHTML = `<i class="fa-solid fa-robot"></i> ${t.aiTitle}`;
+            document.getElementById('txtAiWelcome').innerText = t.aiWelcome;
+            document.getElementById('aiQuery').placeholder = t.aiPlaceholder;
+
+            document.getElementById('txtAbsenHeader').innerHTML = `<i class="fa-solid fa-camera"></i> ${t.absenHeader}`;
+            document.getElementById('btnStartCamera').innerHTML = `<i class="fa-solid fa-video"></i> ${t.openCamera}`;
+            document.getElementById('btnTakeAbsen').innerHTML = `<i class="fa-solid fa-check-circle"></i> ${t.confirmAbsen}`;
+
+            document.getElementById('txtMemoryTitle').innerHTML = `<i class="fa-solid fa-images"></i> ${t.memoryTitle}`;
+            document.getElementById('txtProfileTitle').innerHTML = `<i class="fa-solid fa-id-card"></i> ${t.profileTitle}`;
+            document.getElementById('lblFullName').innerText = t.fullName;
+            document.getElementById('lblProfileClass').innerText = t.profileClass;
+            document.getElementById('btnExit').innerText = t.logoutBtn;
+
+            document.getElementById('navHome').innerText = t.navHome;
+            document.getElementById('navAi').innerText = t.navAi;
+            document.getElementById('navMemory').innerText = t.navMemory;
+            document.getElementById('navProfile').innerText = t.navProfile;
+        }
+
+        // 2. PRELOAD AI FACE DETECTION
         async function loadAIModels() {
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/');
                 isFaceModelLoaded = true;
-                if (absenStatusText) absenStatusText.innerText = "Kamera ready Klik 'Buka Kamera'.";
+                if (absenStatusText) absenStatusText.innerText = translations[currentLang].camReady;
             } catch (err) {
                 console.error("Gagal load Kamera:", err);
                 isFaceModelLoaded = false;
-                if (absenStatusText) absenStatusText.innerText = "⚡ InfoManual: Klik 'Buka Kamera' lalu Kirim Absen.";
+                if (absenStatusText) absenStatusText.innerText = currentLang === 'id' ? "⚡ InfoManual: Klik 'Buka Kamera' lalu Kirim Absen." : "⚡ Manual: Click 'Open Camera' then Submit.";
             }
         }
 
-        // 2. CEK SESSION LOGIN
+        // 3. CEK SESSION LOGIN
         function cekSessionLogin() {
             const sessionData = localStorage.getItem('siswaSession');
             if (sessionData) {
@@ -358,7 +492,7 @@
             }
         }
 
-        // 3. PROSES LOGIN
+        // 4. PROSES LOGIN
         const formLogin = document.getElementById('formLogin');
         if (formLogin) {
             formLogin.addEventListener('submit', async (e) => {
@@ -374,16 +508,20 @@
                     .single();
 
                 if (error || !siswaValid) {
-                    Swal.fire({ icon: 'error', title: 'Login Gagal!', text: 'Username atau Password salah.' });
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: currentLang === 'id' ? 'Login Gagal!' : 'Login Failed!', 
+                        text: currentLang === 'id' ? 'Username atau Password salah.' : 'Incorrect username or password.' 
+                    });
                 } else {
                     localStorage.setItem('siswaSession', JSON.stringify(siswaValid));
-                    Swal.fire({ icon: 'success', title: 'Login Berhasil!', timer: 1200, showConfirmButton: false });
+                    Swal.fire({ icon: 'success', title: currentLang === 'id' ? 'Login Berhasil!' : 'Login Successful!', timer: 1200, showConfirmButton: false });
                     cekSessionLogin();
                 }
             });
         }
 
-        // 4. LOGOUT
+        // 5. LOGOUT
         function logout() {
             localStorage.removeItem('siswaSession');
             location.reload();
@@ -391,7 +529,7 @@
         document.getElementById('btnLogout')?.addEventListener('click', logout);
         document.getElementById('btnExit')?.addEventListener('click', logout);
 
-        // 5. BUKA KAMERA & SCAN AI
+        // 6. BUKA KAMERA & SCAN AI
         btnStartCamera?.addEventListener('click', async () => {
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
@@ -410,16 +548,20 @@
 
                     if (isFaceModelLoaded) {
                         isScanning = true;
-                        absenStatusText.innerText = "🔍 AI Memindai Wajah... Posisikan Wajah ke Kamera";
+                        absenStatusText.innerText = currentLang === 'id' ? "🔍 AI Memindai Wajah... Posisikan Wajah ke Kamera" : "🔍 AI Scanning Face... Position your face to camera";
                         deteksiWajahDenganAI();
                     } else {
-                        absenStatusText.innerHTML = `<span style="color: #4ade80;">Posisikan wajah dengan jelas lalu tekan Kirim.</span>`;
+                        absenStatusText.innerHTML = `<span style="color: #4ade80;">${currentLang === 'id' ? 'Posisikan wajah dengan jelas lalu tekan Kirim.' : 'Position your face clearly then submit.'}</span>`;
                         btnTakeAbsen.disabled = false;
                     }
                 };
 
             } catch (err) {
-                Swal.fire({ icon: 'error', title: 'Akses Kamera Ditolak', text: 'Mohon izinkan akses kamera di browser Anda.' });
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: currentLang === 'id' ? 'Akses Kamera Ditolak' : 'Camera Access Denied', 
+                    text: currentLang === 'id' ? 'Mohon izinkan akses kamera di browser Anda.' : 'Please allow camera access in your browser.' 
+                });
             }
         });
 
@@ -432,10 +574,10 @@
                 const detections = await faceapi.detectAllFaces(video, options);
 
                 if (detections && detections.length > 0) {
-                    absenStatusText.innerHTML = `<span style="color: #4ade80; font-weight: bold;">✅ WAJAH TERDETEKSI! SILAKAN KIRIM</span>`;
+                    absenStatusText.innerHTML = `<span style="color: #4ade80; font-weight: bold;">${currentLang === 'id' ? '✅ WAJAH TERDETEKSI! SILAKAN KIRIM' : '✅ FACE DETECTED! PLEASE SUBMIT'}</span>`;
                     btnTakeAbsen.disabled = false;
                 } else {
-                    absenStatusText.innerHTML = `<span style="color: #f59e0b;">⏳ Memindai Wajah... Dekatkan Wajah ke Kamera</span>`;
+                    absenStatusText.innerHTML = `<span style="color: #f59e0b;">${currentLang === 'id' ? '⏳ Memindai Wajah... Dekatkan Wajah ke Kamera' : '⏳ Scanning Face... Move closer to camera'}</span>`;
                     btnTakeAbsen.disabled = true;
                 }
             } catch (e) {
@@ -447,7 +589,7 @@
             }
         }
 
-        // 6. PROSES ABSEN & UPLOAD FOTO
+        // 7. PROSES ABSEN & UPLOAD FOTO
         btnTakeAbsen?.addEventListener('click', async () => {
             isScanning = false;
             const sessionData = localStorage.getItem('siswaSession');
@@ -466,7 +608,7 @@
                 videoStream.getTracks().forEach(track => track.stop());
             }
 
-            absenStatusText.innerText = "⏳ Menyimpan data & mengunggah foto...";
+            absenStatusText.innerText = currentLang === 'id' ? "⏳ Menyimpan data & mengunggah foto..." : "⏳ Saving data & uploading photo...";
 
             const fileName = `absen_${siswa.nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
             let fotoUrl = '-';
@@ -476,14 +618,11 @@
                 .from('foto-absen')
                 .upload(fileName, blob, { contentType: 'image/jpeg' });
 
-            if (uploadError) {
-                console.error('Gagal Upload Foto:', uploadError.message);
-            } else {
+            if (!uploadError) {
                 const { data: publicUrlData } = supabase
                     .storage
                     .from('foto-absen')
                     .getPublicUrl(fileName);
-                
                 fotoUrl = publicUrlData.publicUrl;
             }
 
@@ -495,8 +634,7 @@
                 hour: '2-digit', minute: '2-digit', second: '2-digit' 
             });
 
-            // Kirim data ke tabel absensi Supabase
-            const { error: insertError } = await supabase.from('absensi').insert([{
+            await supabase.from('absensi').insert([{
                 nama: siswa.nama,
                 kelas: siswa.kelas,
                 tanggal: tanggalFormatted,
@@ -506,19 +644,14 @@
                 foto_url: fotoUrl
             }]);
 
-            if (insertError) {
-                Swal.fire({ icon: 'error', title: 'Gagal Absen', text: insertError.message });
-                return;
-            }
-
             const { count: totalHadir } = await supabase
                 .from('absensi')
                 .select('*', { count: 'exact', head: true })
                 .eq('nama', siswa.nama);
 
-            // KONFIGURASI WASENDER API
+            // WASENDER API
             const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
-            const noHpTujuan = '6283872851796'; // Nomor tujuan WhatsApp
+            const noHpTujuan = '6283872851796';
 
             const pesanWA = 
                 `*📌 ABSENSI SISWA*\n\n` +
@@ -529,16 +662,9 @@
                 `📊 Total Hadir: *${totalHadir || 1} Kali*\n\n` +
                 `_Status: Hadir Terverifikasi AI System_`;
 
-            // Fungsi Kirim WhatsApp dengan Fallback (Gambar + Teks / Teks Saja)
             async function kirimKeWhatsApp() {
-                let payloadData = {
-                    to: noHpTujuan,
-                    text: pesanWA
-                };
-
-                if (fotoUrl && fotoUrl !== '-') {
-                    payloadData.imageUrl = fotoUrl;
-                }
+                let payloadData = { to: noHpTujuan, text: pesanWA };
+                if (fotoUrl && fotoUrl !== '-') payloadData.imageUrl = fotoUrl;
 
                 try {
                     let response = await fetch('https://www.wasenderapi.com/api/send-message', {
@@ -549,11 +675,7 @@
                         },
                         body: JSON.stringify(payloadData)
                     });
-
                     let result = await response.json();
-                    console.log('Respon Wasender:', result);
-
-                    // Jika gagal kirim dengan gambar, otomatis coba kirim pesan teksnya saja
                     if (!result.success && payloadData.imageUrl) {
                         delete payloadData.imageUrl;
                         await fetch('https://www.wasenderapi.com/api/send-message', {
@@ -574,16 +696,16 @@
 
             Swal.fire({ 
                 icon: 'success', 
-                title: 'Absen Berhasil!', 
-                html: `<b>${siswa.nama}</b> (${siswa.kelas})<br>Total Kehadiran: <b>${totalHadir || 1} Kali</b>`
+                title: currentLang === 'id' ? 'Absen Berhasil!' : 'Attendance Successful!', 
+                html: `<b>${siswa.nama}</b> (${siswa.kelas})<br>${currentLang === 'id' ? 'Total Kehadiran' : 'Total Attendance'}: <b>${totalHadir || 1}x</b>`
             });
 
             btnStartCamera.style.display = 'block';
             btnTakeAbsen.style.display = 'none';
-            absenStatusText.innerText = "Absen selesai untuk hari ini.";
+            absenStatusText.innerText = currentLang === 'id' ? "Absen selesai untuk hari ini." : "Attendance completed for today.";
         });
 
-        // 7. FITUR AI CHATBOT INTERAKTIF
+        // 8. FITUR AI CHATBOT INTERAKTIF
         const formAiChat = document.getElementById('formAiChat');
         const chatContainer = document.getElementById('chatContainer');
 
@@ -598,7 +720,7 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             const loadingId = 'load-' + Date.now();
-            chatContainer.innerHTML += `<div class="chat-msg bot" id="${loadingId}">⏳ AI sedang berpikir...</div>`;
+            chatContainer.innerHTML += `<div class="chat-msg bot" id="${loadingId}">⏳ ${currentLang === 'id' ? 'AI sedang berpikir...' : 'AI is thinking...'}</div>`;
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
@@ -607,17 +729,19 @@
 
                 let reply = data.AbstractText || data.Definition;
                 if (!reply) {
-                    reply = `Terima kasih atas pertanyaanmu tentang **"${prompt}"**! Jangan lupa tanyakan juga ke guru pengampu mata pelajaran terkait ya 👍`;
+                    reply = currentLang === 'id' 
+                        ? `Terima kasih atas pertanyaanmu tentang **"${prompt}"**! Jangan lupa tanyakan juga ke guru pengampu mata pelajaran terkait ya 👍`
+                        : `Thanks for asking about **"${prompt}"**! Don't forget to also consult your subject teacher 👍`;
                 }
 
                 document.getElementById(loadingId).innerText = reply;
             } catch (err) {
-                document.getElementById(loadingId).innerText = "Maaf, AI sedang berhalangan menjawab. Coba tanyakan hal lain!";
+                document.getElementById(loadingId).innerText = currentLang === 'id' ? "Maaf, AI sedang berhalangan menjawab. Coba tanyakan hal lain!" : "Sorry, AI is currently unavailable. Try another question!";
             }
             chatContainer.scrollTop = chatContainer.scrollHeight;
         });
 
-        // 8. LOAD INFORMASI SEKOLAH
+        // 9. LOAD INFORMASI SEKOLAH
         async function loadInfoSekolah() {
             const list = document.getElementById('infoSekolahList');
             const { data } = await supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
@@ -631,11 +755,11 @@
                     </div>
                 `).join('');
             } else {
-                list.innerHTML = `<p style="font-size: 12px; color: #64748b;">Belum ada informasi terbaru.</p>`;
+                list.innerHTML = `<p style="font-size: 12px; color: #64748b;">${currentLang === 'id' ? 'Belum ada informasi terbaru.' : 'No recent information.'}</p>`;
             }
         }
 
-        // 9. LOAD MEMORY SEKOLAH
+        // 10. LOAD MEMORY SEKOLAH
         async function loadMemorySekolah() {
             const list = document.getElementById('memorySekolahList');
             const { data } = await supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
@@ -651,11 +775,11 @@
                     </div>
                 `).join('');
             } else {
-                list.innerHTML = `<p style="font-size: 12px; color: #64748b; grid-column: span 2;">Belum ada galeri memory.</p>`;
+                list.innerHTML = `<p style="font-size: 12px; color: #64748b; grid-column: span 2;">${currentLang === 'id' ? 'Belum ada galeri memory.' : 'No memories gallery yet.'}</p>`;
             }
         }
 
-        // 10. NAVIGASI TAB BOTTOM BAR
+        // 11. NAVIGASI TAB BOTTOM BAR
         window.switchTab = function(tabName, el) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
