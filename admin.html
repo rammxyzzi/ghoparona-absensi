@@ -124,7 +124,7 @@
             <div class="header-admin">
                 <div>
                     <h2 style="font-size: 18px; color: #38bdf8;"><i class="fa-solid fa-user-shield"></i> Panel Kontrol Admin</h2>
-                    <p style="font-size: 11px; color: #94a3b8;">Kelola Siswa, Absensi, Informasi & Memory Sekolah</p>
+                    <p style="font-size: 11px; color: #94a3b8;">Kelola Siswa, Absensi, Informasi, Memory & Notifikasi HP</p>
                 </div>
                 <button id="btnAdminLogout" class="btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
             </div>
@@ -132,9 +132,10 @@
             <!-- TABS MENU -->
             <div class="admin-nav">
                 <button class="nav-btn active" onclick="switchAdminTab('Absensi', this)"><i class="fa-solid fa-list-check"></i> Riwayat Absen</button>
-                <button class="nav-btn" onclick="switchAdminTab('MasterSiswa, this)"><i class="fa-solid fa-users"></i> Data Siswa</button>
+                <button class="nav-btn" onclick="switchAdminTab('MasterSiswa', this)"><i class="fa-solid fa-users"></i> Data Siswa</button>
                 <button class="nav-btn" onclick="switchAdminTab('InfoSekolah', this)"><i class="fa-solid fa-bullhorn"></i> Info Sekolah</button>
                 <button class="nav-btn" onclick="switchAdminTab('MemorySekolah', this)"><i class="fa-solid fa-images"></i> Memory Sekolah</button>
+                <button class="nav-btn" onclick="switchAdminTab('NotifHp', this)"><i class="fa-solid fa-bell"></i> Notif HP Siswa</button>
             </div>
 
             <!-- TAB 1: RIWAYAT ABSENSI -->
@@ -260,6 +261,30 @@
                     <div id="adminMemoryGrid" class="admin-memory-grid">
                         <p style="font-size: 12px; color: #94a3b8;">Memuat memory...</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: KIRIM NOTIFIKASI REALTIME KE HP SISWA -->
+            <div id="tabNotifHp" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bell"></i> Kirim Notifikasi Realtime ke HP Siswa</h3>
+                    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Pesan yang dikirim dari sini akan langsung muncul sebagai pop-up di layar HP semua siswa yang sedang membuka aplikasi.</p>
+                    
+                    <form id="formKirimNotifHp">
+                        <div class="form-group">
+                            <label>Judul Notifikasi</label>
+                            <input type="text" id="notifAdminJudul" placeholder="Contoh: Peringatan / Info Penting Sekolah" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Isi Pesan</label>
+                            <textarea id="notifAdminPesan" placeholder="Tulis isi pesan notifikasi..." required></textarea>
+                        </div>
+
+                        <button type="submit" id="btnBroadcastHp" class="btn-primary">
+                            <i class="fa-solid fa-paper-plane"></i> Kirim Notifikasi Sekarang
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -465,6 +490,29 @@
                 loadMemoryData();
             }
         }
+
+        // 5. KIRIM NOTIFIKASI REALTIME KE HP SISWA
+        document.getElementById('formKirimNotifHp')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const judul = document.getElementById('notifAdminJudul').value.trim();
+            const pesan = document.getElementById('notifAdminPesan').value.trim();
+            const btn = document.getElementById('btnBroadcastHp');
+
+            btn.innerText = "Mengirim...";
+            btn.disabled = true;
+
+            const { error } = await supabase.from('notif_hp').insert([{ judul, pesan }]);
+
+            if (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal Mengirim', text: error.message });
+            } else {
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Notifikasi berhasil dikirim ke HP seluruh siswa.', timer: 1500, showConfirmButton: false });
+                document.getElementById('formKirimNotifHp').reset();
+            }
+
+            btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Kirim Notifikasi Sekarang`;
+            btn.disabled = false;
+        });
 
         // SWITCH TAB MENU ADMIN
         window.switchAdminTab = function(tabName, el) {
