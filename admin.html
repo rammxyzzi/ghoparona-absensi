@@ -13,9 +13,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #080b11; color: #f1f5f9; min-height: 100vh; padding: 20px; display: flex; justify-content: center; }
         
-        /* Sembunyikan isi panel sebelum password diverifikasi */
         .app-container { width: 100%; max-width: 650px; display: none; }
-        
         .card { background: rgba(18, 24, 38, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .badge-admin { font-size: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold; }
@@ -209,14 +207,13 @@
     <script type="module">
         import { supabase } from './supabase.js';
 
-        // PASSWORD DEFAULT ADMIN (Bisa kamu ubah sesukamu di sini)
+        // PASSWORD DEFAULT ADMIN
         const ADMIN_SECRET_KEY = "admin123"; 
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAdminAuth();
         });
 
-        // SYSTEM KEAMANAN LOGIN ADMIN
         function checkAdminAuth() {
             const isAuth = sessionStorage.getItem('adminAuthenticated');
             if (isAuth === 'true') {
@@ -258,7 +255,7 @@
             });
         }
 
-        document.getElementById('btnKeluarAdmin').addEventListener('click', () => {
+        document.getElementById('btnKeluarAdmin')?.addEventListener('click', () => {
             sessionStorage.removeItem('adminAuthenticated');
             window.location.href = 'index.html';
         });
@@ -281,10 +278,10 @@
         const secInfo = document.getElementById('secInfo');
 
         // TAB NAVIGATION
-        tabGuru.addEventListener('click', () => switchTab('guru'));
-        tabKelas.addEventListener('click', () => switchTab('kelas'));
-        tabSiswa.addEventListener('click', () => switchTab('siswa'));
-        tabInfo.addEventListener('click', () => switchTab('info'));
+        tabGuru?.addEventListener('click', () => switchTab('guru'));
+        tabKelas?.addEventListener('click', () => switchTab('kelas'));
+        tabSiswa?.addEventListener('click', () => switchTab('siswa'));
+        tabInfo?.addEventListener('click', () => switchTab('info'));
 
         function switchTab(tab) {
             tabGuru.classList.remove('active');
@@ -312,7 +309,6 @@
             }
         }
 
-        // FETCH DATA & FORM HANDLERS
         async function loadKelasDropdown() {
             const { data: listKelas } = await supabase.from('master_kelas').select('nama_kelas').order('nama_kelas', { ascending: true });
             const guruSelect = document.getElementById('guruKelasSelect');
@@ -321,8 +317,8 @@
             if (listKelas) {
                 listKelas.forEach(k => { options += `<option value="${k.nama_kelas}">${k.nama_kelas}</option>`; });
             }
-            guruSelect.innerHTML = options;
-            siswaSelect.innerHTML = options;
+            if (guruSelect) guruSelect.innerHTML = options;
+            if (siswaSelect) siswaSelect.innerHTML = options;
         }
 
         document.getElementById('formCreateKelas')?.addEventListener('submit', async (e) => {
@@ -415,20 +411,29 @@
 
         async function loadGuruList() {
             const { data: guru } = await supabase.from('master_guru').select('*');
-            let html = guru && guru.length > 0 ? guru.map(g => `<tr><td><b>${g.nama_guru}</b></td><td>${g.wali_kelas_dari}</td><td><code>${g.username}</code></td></tr>`).join('') : '<tr><td colspan="3" style="text-align:center; color:#64748b;">Belum ada akun Wali Kelas.</td></tr>';
-            document.getElementById('listGuruTable').innerHTML = html;
+            let html = (guru && guru.length > 0) 
+                ? guru.map(g => `<tr><td><b>${g.nama_guru}</b></td><td>${g.wali_kelas_dari}</td><td><code>${g.username}</code></td></tr>`).join('') 
+                : '<tr><td colspan="3" style="text-align:center; color:#64748b;">Belum ada akun Wali Kelas.</td></tr>';
+            const elem = document.getElementById('listGuruTable');
+            if (elem) elem.innerHTML = html;
         }
 
         async function loadMasterKelasList() {
             const { data: kelas } = await supabase.from('master_kelas').select('*');
-            let html = kelas && kelas.length > 0 ? kelas.map(k => `<tr><td><b>${k.nama_kelas}</b></td><td><span style="font-size:10px; color:#94a3b8;">${k.group_wa_id || 'Belum diisi'}</span></td></tr>`;
-            document.getElementById('listKelasTable').innerHTML = html;
+            let html = (kelas && kelas.length > 0) 
+                ? kelas.map(k => `<tr><td><b>${k.nama_kelas}</b></td><td><span style="font-size:10px; color:#94a3b8;">${k.group_wa_id || 'Belum diisi'}</span></td></tr>`).join('') 
+                : '<tr><td colspan="2" style="text-align:center; color:#64748b;">Belum ada data kelas.</td></tr>';
+            const elem = document.getElementById('listKelasTable');
+            if (elem) elem.innerHTML = html;
         }
 
         async function loadInfoList() {
             const { data: info } = await supabase.from('pengumuman_sekolah').select('*').order('created_at', { ascending: false });
-            let html = info && info.length > 0 ? info.map(i => `<tr><td>${i.image_url ? `<img src="${i.image_url}" class="img-thumb" alt="Foto">` : '-'}</td><td><span style="color:#a855f7; font-weight:bold;">${i.kategori}</span></td><td><b>${i.judul}</b></td></tr>`).join('') : '<tr><td colspan="3" style="text-align:center; color:#64748b;">Belum ada pengumuman atau memory tersimpan.</td></tr>';
-            document.getElementById('listInfoTable').innerHTML = html;
+            let html = (info && info.length > 0) 
+                ? info.map(i => `<tr><td>${i.image_url ? `<img src="${i.image_url}" class="img-thumb" alt="Foto">` : '-'}</td><td><span style="color:#a855f7; font-weight:bold;">${i.kategori}</span></td><td><b>${i.judul}</b></td></tr>`).join('') 
+                : '<tr><td colspan="3" style="text-align:center; color:#64748b;">Belum ada pengumuman atau memory tersimpan.</td></tr>';
+            const elem = document.getElementById('listInfoTable');
+            if (elem) elem.innerHTML = html;
         }
     </script>
 </body>
