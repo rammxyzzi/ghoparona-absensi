@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Control Panel</title>
+    <title>Panel Admin - Kelola Sekolah</title>
     <!-- SweetAlert2 & FontAwesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -11,516 +11,432 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
-        body {
-            background-color: #080b11;
-            color: #f1f5f9;
-            min-height: 100vh;
-            padding: 20px 10px 80px 10px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .admin-container {
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .header-admin {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            background: rgba(18, 24, 38, 0.8);
-            padding: 16px 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .card {
-            background: rgba(18, 24, 38, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        /* FORM STYLES */
-        .form-group { margin-bottom: 12px; text-align: left; }
+        body { background-color: #080b11; color: #f1f5f9; min-height: 100vh; padding: 20px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 650px; }
+        .card { background: rgba(18, 24, 38, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .badge-admin { font-size: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold; }
+        .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
-        .form-group input, .form-group textarea {
-            width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; outline: none;
-            font-size: 13px;
-        }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-
-        .btn-primary {
-            width: 100%; padding: 10px 14px; background: linear-gradient(135deg, #0284c7, #2563eb);
-            border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;
-            transition: all 0.3s ease; font-size: 13px;
-        }
-
-        .btn-danger {
-            background: #ef4444; color: white; border: none; padding: 6px 10px;
-            border-radius: 6px; cursor: pointer; font-size: 11px;
-        }
-
-        /* NAVIGATION MENU TABS */
-        .admin-nav {
-            display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 5px;
-        }
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #94a3b8; padding: 10px 16px; border-radius: 10px; cursor: pointer;
-            white-space: nowrap; font-size: 12px; font-weight: 600; transition: all 0.2s;
-        }
-        .nav-btn.active {
-            background: #2563eb; color: white; border-color: #38bdf8;
-        }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* TABLE STYLE */
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
-        th, td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-        th { background: rgba(255, 255, 255, 0.05); color: #38bdf8; font-weight: 600; }
-
-        /* GRID MEMORY LIST */
-        .admin-memory-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px;
-        }
-        .admin-memory-item {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px; overflow: hidden; position: relative;
-        }
-        .admin-memory-item img { width: 100%; height: 110px; object-fit: cover; }
-        .admin-memory-info { padding: 10px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; outline: none; }
+        .form-group select option { background: #121826; color: white; }
+        .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .table-custom { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        .table-custom th, .table-custom td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .table-custom th { color: #38bdf8; font-weight: 600; }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 120px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #94a3b8; cursor: pointer; text-align: center; font-size: 11px; font-weight: 600; }
+        .tab-btn.active { background: #2563eb; color: white; border-color: #38bdf8; }
+        .img-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
 
-    <div class="admin-container">
+    <div class="app-container">
 
-        <!-- LOGIN SCREEN ADMIN -->
-        <div id="adminLoginScreen" class="card" style="max-width: 400px; margin: 60px auto;">
-            <div style="font-size: 40px; text-align: center; margin-bottom: 10px;">🔐</div>
-            <h2 style="text-align: center; font-size: 20px; margin-bottom: 15px;">Login - Admin</h2>
-            <form id="formAdminLogin">
+        <!-- HEADER ADMIN -->
+        <div class="header card" style="margin-bottom: 15px;">
+            <div>
+                <span class="badge-admin">ADMINISTRATOR</span>
+                <h3 style="margin-top: 4px;">Panel Pengelolaan Sekolah</h3>
+                <p style="font-size: 12px; color: #94a3b8;">Kelola Akun, Kelas, & Informasi Sekolah</p>
+            </div>
+            <a href="index.html" style="color: #ef4444; text-decoration: none; font-size: 18px;" title="Ke Halaman Utama"><i class="fa-solid fa-house"></i></a>
+        </div>
+
+        <!-- NAVIGATION TABS -->
+        <div class="nav-tabs">
+            <div id="tabGuru" class="tab-btn active"><i class="fa-solid fa-user-tie"></i> Wali Kelas</div>
+            <div id="tabKelas" class="tab-btn"><i class="fa-solid fa-school"></i> Tambah Kelas</div>
+            <div id="tabSiswa" class="tab-btn"><i class="fa-solid fa-user-graduate"></i> Akun Siswa</div>
+            <div id="tabInfo" class="tab-btn"><i class="fa-solid fa-bullhorn"></i> Pengumuman & Info</div>
+        </div>
+
+        <!-- ================= 1. FORM CREATE WALI KELAS ================= -->
+        <div id="secWaliKelas" class="card">
+            <h4 style="font-size: 14px; color: #f59e0b; margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> Tambah Akun Wali Kelas</h4>
+            <form id="formCreateGuru">
                 <div class="form-group">
-                    <label>Password Admin</label>
-                    <input type="password" id="adminPass" placeholder="Masukkan Password Admin" required>
+                    <label>Nama Lengkap Guru</label>
+                    <input type="text" id="guruNama" placeholder="Contoh: Drs. Budi Santoso" required>
                 </div>
-                <button type="submit" class="btn-primary">Masuk Panel Admin &rarr;</button>
+                <div class="form-group">
+                    <label>Wali Kelas Dari</label>
+                    <select id="guruKelasSelect" required>
+                        <option value="">-- Pilih Kelas --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Username Login Wali Kelas</label>
+                    <input type="text" id="guruUsername" placeholder="Contoh: walikelas_10ipa1" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="guruPassword" placeholder="Masukkan Password Akun" required>
+                </div>
+                <button type="submit" class="btn-primary btn-amber"><i class="fa-solid fa-save"></i> Simpan Akun Wali Kelas</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0;">
+
+            <h5 style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Daftar Wali Kelas Terdaftar</h5>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Nama Guru</th>
+                        <th>Kelas</th>
+                        <th>Username</th>
+                    </tr>
+                </thead>
+                <tbody id="listGuruTable">
+                    <tr><td colspan="3" style="text-align:center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================= 2. FORM CREATE KELAS ================= -->
+        <div id="secKelas" class="card" style="display: none;">
+            <h4 style="font-size: 14px; color: #38bdf8; margin-bottom: 15px;"><i class="fa-solid fa-school"></i> Tambah Master Kelas</h4>
+            <form id="formCreateKelas">
+                <div class="form-group">
+                    <label>Nama Kelas</label>
+                    <input type="text" id="namaKelasInput" placeholder="Contoh: 10 IPA 1" required>
+                </div>
+                <div class="form-group">
+                    <label>ID Grup WhatsApp (Opsional)</label>
+                    <input type="text" id="groupWaInput" placeholder="Contoh: 120363041234567890@g.us">
+                </div>
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-plus-circle"></i> Tambah Kelas Baru</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0;">
+
+            <h5 style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Daftar Kelas</h5>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Nama Kelas</th>
+                        <th>ID WhatsApp Group</th>
+                    </tr>
+                </thead>
+                <tbody id="listKelasTable">
+                    <tr><td colspan="2" style="text-align:center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================= 3. FORM CREATE SISWA ================= -->
+        <div id="secSiswa" class="card" style="display: none;">
+            <h4 style="font-size: 14px; color: #4ade80; margin-bottom: 15px;"><i class="fa-solid fa-user-graduate"></i> Tambah Akun Siswa</h4>
+            <form id="formCreateSiswa">
+                <div class="form-group">
+                    <label>Nama Lengkap Siswa</label>
+                    <input type="text" id="siswaNama" placeholder="Contoh: Ahmad Rizky" required>
+                </div>
+                <div class="form-group">
+                    <label>Kelas Siswa</label>
+                    <select id="siswaKelasSelect" required>
+                        <option value="">-- Pilih Kelas --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Username Siswa</label>
+                    <input type="text" id="siswaUsername" placeholder="Contoh: ahmad_10ipa1" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="siswaPassword" placeholder="Masukkan Password" required>
+                </div>
+                <button type="submit" class="btn-primary btn-success"><i class="fa-solid fa-user-plus"></i> Simpan Akun Siswa</button>
             </form>
         </div>
 
-        <!-- MAIN DASHBOARD ADMIN -->
-        <div id="adminDashboard" style="display: none;">
-            
-            <div class="header-admin">
-                <div>
-                    <h2 style="font-size: 18px; color: #38bdf8;"><i class="fa-solid fa-user-shield"></i> Panel Kontrol Admin</h2>
-                    <p style="font-size: 11px; color: #94a3b8;">Kelola Siswa, Absensi, Informasi, Memory & Notifikasi HP</p>
+        <!-- ================= 4. FORM PENGUMUMAN & MEMORY SEKOLAH ================= -->
+        <div id="secInfo" class="card" style="display: none;">
+            <h4 style="font-size: 14px; color: #a855f7; margin-bottom: 15px;"><i class="fa-solid fa-bullhorn"></i> Buat Pengumuman & Memory Sekolah</h4>
+            <form id="formCreatePengumuman">
+                <div class="form-group">
+                    <label>Kategori Informasi</label>
+                    <select id="kategoriInfo" required>
+                        <option value="Memory Sekolah">Memory / Arsip Sekolah</option>
+                        <option value="Pengumuman">Pengumuman Umum</option>
+                        <option value="Informasi Sekolah">Informasi / Profile Sekolah</option>
+                    </select>
                 </div>
-                <button id="btnAdminLogout" class="btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
-            </div>
-
-            <!-- TABS MENU -->
-            <div class="admin-nav">
-                <button class="nav-btn active" onclick="switchAdminTab('Absensi', this)"><i class="fa-solid fa-list-check"></i> Riwayat Absen</button>
-                <button class="nav-btn" onclick="switchAdminTab('MasterSiswa', this)"><i class="fa-solid fa-users"></i> Data Siswa</button>
-                <button class="nav-btn" onclick="switchAdminTab('InfoSekolah', this)"><i class="fa-solid fa-bullhorn"></i> Info Sekolah</button>
-                <button class="nav-btn" onclick="switchAdminTab('MemorySekolah', this)"><i class="fa-solid fa-images"></i> Memory Sekolah</button>
-                <button class="nav-btn" onclick="switchAdminTab('NotifHp', this)"><i class="fa-solid fa-bell"></i> Notif HP Siswa</button>
-            </div>
-
-            <!-- TAB 1: RIWAYAT ABSENSI -->
-            <div id="tabAbsensi" class="tab-content active">
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-clock-rotate-left"></i> Log Absensi Siswa</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Waktu & Tanggal</th>
-                                    <th>Nama Siswa</th>
-                                    <th>Kelas</th>
-                                    <th>Foto Bukti</th>
-                                </tr>
-                            </thead>
-                            <tbody id="listAbsensiTable">
-                                <tr><td colspan="4" style="text-align: center; color: #94a3b8;">Memuat data absensi...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="form-group">
+                    <label>Judul Informasi / Memory</label>
+                    <input type="text" id="judulInfo" placeholder="Contoh: Foto Kegiatan LDKO 2026" required>
                 </div>
-            </div>
-
-            <!-- TAB 2: MASTER DATA SISWA -->
-            <div id="tabMasterSiswa" class="tab-content">
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-user-plus"></i> Tambah Akun Siswa Baru</h3>
-                    <form id="formTambahSiswa">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group">
-                                <label>Nama Lengkap</label>
-                                <input type="text" id="addNama" placeholder="Contoh: Ryann" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Kelas</label>
-                                <input type="text" id="addKelas" placeholder="Contoh: XII C++" required>
-                            </div>
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div class="form-group">
-                                <label>Username Login</label>
-                                <input type="text" id="addUsername" placeholder="Contoh: ryann12" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Password Login</label>
-                                <input type="text" id="addPassword" placeholder="Contoh: 123456" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary" style="margin-top: 5px;">+ Simpan Akun Siswa</button>
-                    </form>
+                <div class="form-group">
+                    <label>Upload Foto / Gambar (Opsional)</label>
+                    <input type="file" id="gambarInput" accept="image/*">
                 </div>
-
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-users"></i> Daftar Siswa Terdaftar</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nama</th>
-                                    <th>Kelas</th>
-                                    <th>Username</th>
-                                    <th>Password</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="listSiswaTable">
-                                <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Memuat data siswa...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="form-group">
+                    <label>Isi Detail Informasi / Catatan Memory</label>
+                    <textarea id="isiInfo" rows="4" placeholder="Tuliskan isi informasi atau momen kenangan di sini..." required></textarea>
                 </div>
-            </div>
+                <button type="submit" id="btnSubmitInfo" class="btn-primary btn-purple"><i class="fa-solid fa-paper-plane"></i> Publikasikan Informasi</button>
+            </form>
 
-            <!-- TAB 3: KELOLA INFORMASI SEKOLAH -->
-            <div id="tabInfoSekolah" class="tab-content">
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bullhorn"></i> Tambah Informasi / Pengumuman</h3>
-                    <form id="formTambahInfo">
-                        <div class="form-group">
-                            <label>Judul Pengumuman</label>
-                            <input type="text" id="addInfoJudul" placeholder="Contoh: Libur Nasional / Ujian Semester" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Isi Informasi</label>
-                            <textarea id="addInfoIsi" placeholder="Tulis rincian pengumuman untuk siswa di sini..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary">+ Publikasikan Informasi</button>
-                    </form>
-                </div>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0;">
 
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-list"></i> Daftar Informasi Aktif</h3>
-                    <div id="adminInfoList">
-                        <p style="font-size: 12px; color: #94a3b8;">Memuat informasi...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 4: KELOLA MEMORY SEKOLAH -->
-            <div id="tabMemorySekolah" class="tab-content">
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-image"></i> Tambah Memory Galeri Foto</h3>
-                    <form id="formTambahMemory">
-                        <div class="form-group">
-                            <label>Judul Memory / Kegiatan</label>
-                            <input type="text" id="addMemJudul" placeholder="Contoh: Classmeeting / Study Tour 2026" required>
-                        </div>
-                        <div class="form-group">
-                            <label>URL / Link Foto (Atau Link Gambar Public)</label>
-                            <input type="url" id="addMemFotoUrl" placeholder="https://..." required>
-                        </div>
-                        <div class="form-group">
-                            <label>Deskripsi Singkat (Opsional)</label>
-                            <textarea id="addMemDeskripsi" placeholder="Ceritakan momen singkat di foto ini..."></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary">+ Upload Memory Baru</button>
-                    </form>
-                </div>
-
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-photo-film"></i> Galeri Memory Terdaftar</h3>
-                    <div id="adminMemoryGrid" class="admin-memory-grid">
-                        <p style="font-size: 12px; color: #94a3b8;">Memuat memory...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 5: KIRIM NOTIFIKASI REALTIME KE HP SISWA -->
-            <div id="tabNotifHp" class="tab-content">
-                <div class="card">
-                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bell"></i> Kirim Notifikasi Realtime ke HP Siswa</h3>
-                    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Pesan yang dikirim dari sini akan langsung muncul sebagai pop-up di layar HP semua siswa yang sedang membuka aplikasi.</p>
-                    
-                    <form id="formKirimNotifHp">
-                        <div class="form-group">
-                            <label>Judul Notifikasi</label>
-                            <input type="text" id="notifAdminJudul" placeholder="Contoh: Peringatan / Info Penting Sekolah" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Isi Pesan</label>
-                            <textarea id="notifAdminPesan" placeholder="Tulis isi pesan notifikasi..." required></textarea>
-                        </div>
-
-                        <button type="submit" id="btnBroadcastHp" class="btn-primary">
-                            <i class="fa-solid fa-paper-plane"></i> Kirim Notifikasi Sekarang
-                        </button>
-                    </form>
-                </div>
-            </div>
-
+            <h5 style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Daftar Pengumuman & Memory</h5>
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Kategori</th>
+                        <th>Judul</th>
+                    </tr>
+                </thead>
+                <tbody id="listInfoTable">
+                    <tr><td colspan="3" style="text-align:center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
         </div>
 
     </div>
 
-    <!-- SCRIPT UTAMA DASHBOARD ADMIN -->
+    <!-- MAIN SCRIPT MODULE -->
     <script type="module">
         import { supabase } from './supabase.js';
 
-        const ADMIN_PASSWORD = "admin123"; // Ganti password admin kamu di sini
+        const tabGuru = document.getElementById('tabGuru');
+        const tabKelas = document.getElementById('tabKelas');
+        const tabSiswa = document.getElementById('tabSiswa');
+        const tabInfo = document.getElementById('tabInfo');
+
+        const secWaliKelas = document.getElementById('secWaliKelas');
+        const secKelas = document.getElementById('secKelas');
+        const secSiswa = document.getElementById('secSiswa');
+        const secInfo = document.getElementById('secInfo');
+
+        // TAB NAVIGATION
+        tabGuru.addEventListener('click', () => switchTab('guru'));
+        tabKelas.addEventListener('click', () => switchTab('kelas'));
+        tabSiswa.addEventListener('click', () => switchTab('siswa'));
+        tabInfo.addEventListener('click', () => switchTab('info'));
+
+        function switchTab(tab) {
+            tabGuru.classList.remove('active');
+            tabKelas.classList.remove('active');
+            tabSiswa.classList.remove('active');
+            tabInfo.classList.remove('active');
+
+            secWaliKelas.style.display = 'none';
+            secKelas.style.display = 'none';
+            secSiswa.style.display = 'none';
+            secInfo.style.display = 'none';
+
+            if (tab === 'guru') {
+                tabGuru.classList.add('active');
+                secWaliKelas.style.display = 'block';
+            } else if (tab === 'kelas') {
+                tabKelas.classList.add('active');
+                secKelas.style.display = 'block';
+            } else if (tab === 'siswa') {
+                tabSiswa.classList.add('active');
+                secSiswa.style.display = 'block';
+            } else if (tab === 'info') {
+                tabInfo.classList.add('active');
+                secInfo.style.display = 'block';
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            cekAdminSession();
+            loadKelasDropdown();
+            loadMasterKelasList();
+            loadGuruList();
+            loadInfoList();
         });
 
-        function cekAdminSession() {
-            if (localStorage.getItem('adminIsLoggedIn') === 'true') {
-                document.getElementById('adminLoginScreen').style.display = 'none';
-                document.getElementById('adminDashboard').style.display = 'block';
+        // 1. FETCH DAFTAR KELAS KE DROPDOWN SELECT
+        async function loadKelasDropdown() {
+            const { data: listKelas } = await supabase.from('master_kelas').select('nama_kelas').order('nama_kelas', { ascending: true });
+            
+            const guruSelect = document.getElementById('guruKelasSelect');
+            const siswaSelect = document.getElementById('siswaKelasSelect');
 
-                loadAbsensiData();
-                loadSiswaData();
-                loadInfoData();
-                loadMemoryData();
-            } else {
-                document.getElementById('adminLoginScreen').style.display = 'block';
-                document.getElementById('adminDashboard').style.display = 'none';
+            let options = '<option value="">-- Pilih Kelas --</option>';
+            if (listKelas) {
+                listKelas.forEach(k => {
+                    options += `<option value="${k.nama_kelas}">${k.nama_kelas}</option>`;
+                });
             }
+
+            guruSelect.innerHTML = options;
+            siswaSelect.innerHTML = options;
         }
 
-        // LOGIN ADMIN
-        document.getElementById('formAdminLogin')?.addEventListener('submit', (e) => {
+        // 2. TAMBAH KELAS BARU
+        document.getElementById('formCreateKelas')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const pass = document.getElementById('adminPass').value;
-            if (pass === ADMIN_PASSWORD) {
-                localStorage.setItem('adminIsLoggedIn', 'true');
-                Swal.fire({ icon: 'success', title: 'Login Admin Berhasil', timer: 1000, showConfirmButton: false });
-                cekAdminSession();
-            } else {
-                Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Password Admin Salah!' });
-            }
-        });
+            const nama_kelas = document.getElementById('namaKelasInput').value.trim();
+            const group_wa_id = document.getElementById('groupWaInput').value.trim();
 
-        // LOGOUT ADMIN
-        document.getElementById('btnAdminLogout')?.addEventListener('click', () => {
-            localStorage.removeItem('adminIsLoggedIn');
-            location.reload();
-        });
-
-        // 1. LOAD RIWAYAT ABSENSI
-        async function loadAbsensiData() {
-            const table = document.getElementById('listAbsensiTable');
-            const { data, error } = await supabase.from('absensi').select('*').order('id', { ascending: false });
-
-            if (data && data.length > 0) {
-                table.innerHTML = data.map(item => `
-                    <tr>
-                        <td>${new Date(item.waktu).toLocaleString('id-ID')}</td>
-                        <td><b>${item.nama}</b></td>
-                        <td>${item.kelas}</td>
-                        <td>
-                            ${item.foto_url && item.foto_url !== '-' ? 
-                                `<a href="${item.foto_url}" target="_blank" style="color: #38bdf8; text-decoration: none;"><i class="fa-solid fa-image"></i> Lihat Foto</a>` 
-                                : '<span style="color:#64748b;">Tidak Ada</span>'}
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">Belum ada riwayat absensi.</td></tr>`;
-            }
-        }
-
-        // 2. KELOLA MASTER SISWA
-        async function loadSiswaData() {
-            const table = document.getElementById('listSiswaTable');
-            const { data } = await supabase.from('master_siswa').select('*').order('id', { ascending: false });
-
-            if (data && data.length > 0) {
-                table.innerHTML = data.map(siswa => `
-                    <tr>
-                        <td><b>${siswa.nama}</b></td>
-                        <td>${siswa.kelas}</td>
-                        <td><code>${siswa.username}</code></td>
-                        <td><code>${siswa.password}</code></td>
-                        <td>
-                            <button class="btn-danger" onclick="hapusSiswa(${siswa.id})"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                table.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Belum ada siswa terdaftar.</td></tr>`;
-            }
-        }
-
-        document.getElementById('formTambahSiswa')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nama = document.getElementById('addNama').value.trim();
-            const kelas = document.getElementById('addKelas').value.trim();
-            const username = document.getElementById('addUsername').value.trim().toLowerCase();
-            const password = document.getElementById('addPassword').value.trim();
-
-            const { error } = await supabase.from('master_siswa').insert([{ nama, kelas, username, password }]);
-            if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
-            } else {
-                Swal.fire({ icon: 'success', title: 'Siswa Ditambahkan', timer: 1000, showConfirmButton: false });
-                document.getElementById('formTambahSiswa').reset();
-                loadSiswaData();
-            }
-        });
-
-        window.hapusSiswa = async function(id) {
-            if (confirm('Yakin ingin menghapus akun siswa ini?')) {
-                await supabase.from('master_siswa').delete().eq('id', id);
-                loadSiswaData();
-            }
-        }
-
-        // 3. KELOLA INFORMASI SEKOLAH
-        async function loadInfoData() {
-            const list = document.getElementById('adminInfoList');
-            const { data } = await supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
-
-            if (data && data.length > 0) {
-                list.innerHTML = data.map(info => `
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <div style="font-weight: 700; font-size: 14px; color: #38bdf8;">${info.judul}</div>
-                            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">${info.isi}</p>
-                        </div>
-                        <button class="btn-danger" onclick="hapusInfo(${info.id})" style="margin-left: 10px;"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `).join('');
-            } else {
-                list.innerHTML = `<p style="font-size: 12px; color: #64748b;">Belum ada informasi sekolah.</p>`;
-            }
-        }
-
-        document.getElementById('formTambahInfo')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const judul = document.getElementById('addInfoJudul').value.trim();
-            const isi = document.getElementById('addInfoIsi').value.trim();
-
-            const { error } = await supabase.from('informasi_sekolah').insert([{ judul, isi }]);
-            if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
-            } else {
-                Swal.fire({ icon: 'success', title: 'Informasi Dipublikasikan', timer: 1000, showConfirmButton: false });
-                document.getElementById('formTambahInfo').reset();
-                loadInfoData();
-            }
-        });
-
-        window.hapusInfo = async function(id) {
-            if (confirm('Hapus pengumuman informasi ini?')) {
-                await supabase.from('informasi_sekolah').delete().eq('id', id);
-                loadInfoData();
-            }
-        }
-
-        // 4. KELOLA MEMORY SEKOLAH
-        async function loadMemoryData() {
-            const grid = document.getElementById('adminMemoryGrid');
-            const { data } = await supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
-
-            if (data && data.length > 0) {
-                grid.innerHTML = data.map(mem => `
-                    <div class="admin-memory-item">
-                        <img src="${mem.foto_url}" alt="Memory">
-                        <div class="admin-memory-info">
-                            <div style="font-weight: 700; font-size: 12px;">${mem.judul}</div>
-                            <p style="font-size: 10px; color: #94a3b8; margin-top: 2px;">${mem.deskripsi || ''}</p>
-                            <button class="btn-danger" onclick="hapusMemory(${mem.id})" style="width: 100%; margin-top: 8px;"><i class="fa-solid fa-trash"></i> Hapus</button>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                grid.innerHTML = `<p style="font-size: 12px; color: #64748b; grid-column: 1 / -1;">Belum ada galeri memory.</p>`;
-            }
-        }
-
-        document.getElementById('formTambahMemory')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const judul = document.getElementById('addMemJudul').value.trim();
-            const foto_url = document.getElementById('addMemFotoUrl').value.trim();
-            const deskripsi = document.getElementById('addMemDeskripsi').value.trim();
-
-            const { error } = await supabase.from('memory_sekolah').insert([{ judul, foto_url, deskripsi }]);
-            if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
-            } else {
-                Swal.fire({ icon: 'success', title: 'Memory Ditambahkan', timer: 1000, showConfirmButton: false });
-                document.getElementById('formTambahMemory').reset();
-                loadMemoryData();
-            }
-        });
-
-        window.hapusMemory = async function(id) {
-            if (confirm('Hapus foto memory ini?')) {
-                await supabase.from('memory_sekolah').delete().eq('id', id);
-                loadMemoryData();
-            }
-        }
-
-        // 5. KIRIM NOTIFIKASI REALTIME KE HP SISWA
-        document.getElementById('formKirimNotifHp')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const judul = document.getElementById('notifAdminJudul').value.trim();
-            const pesan = document.getElementById('notifAdminPesan').value.trim();
-            const btn = document.getElementById('btnBroadcastHp');
-
-            btn.innerText = "Mengirim...";
-            btn.disabled = true;
-
-            const { error } = await supabase.from('notif_hp').insert([{ judul, pesan }]);
+            const { error } = await supabase.from('master_kelas').insert([{ nama_kelas, group_wa_id }]);
 
             if (error) {
-                Swal.fire({ icon: 'error', title: 'Gagal Mengirim', text: error.message });
+                Swal.fire('Gagal', error.message.includes('unique') ? 'Nama kelas sudah ada!' : error.message, 'error');
             } else {
-                Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Notifikasi berhasil dikirim ke HP seluruh siswa.', timer: 1500, showConfirmButton: false });
-                document.getElementById('formKirimNotifHp').reset();
+                Swal.fire('Berhasil', `Kelas ${nama_kelas} berhasil ditambahkan`, 'success');
+                document.getElementById('formCreateKelas').reset();
+                loadKelasDropdown();
+                loadMasterKelasList();
             }
-
-            btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Kirim Notifikasi Sekarang`;
-            btn.disabled = false;
         });
 
-        // SWITCH TAB MENU ADMIN
-        window.switchAdminTab = function(tabName, el) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        // 3. TAMBAH AKUN WALI KELAS
+        document.getElementById('formCreateGuru')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nama_guru = document.getElementById('guruNama').value.trim();
+            const wali_kelas_dari = document.getElementById('guruKelasSelect').value;
+            const username = document.getElementById('guruUsername').value.trim();
+            const password = document.getElementById('guruPassword').value.trim();
 
-            document.getElementById('tab' + tabName).classList.add('active');
-            if (el) el.classList.add('active');
+            const { error } = await supabase.from('master_guru').insert([{
+                nama_guru,
+                wali_kelas_dari,
+                username,
+                password,
+                role: 'wali_kelas'
+            }]);
+
+            if (error) {
+                Swal.fire('Gagal', error.message.includes('unique') ? 'Username sudah dipakai!' : error.message, 'error');
+            } else {
+                Swal.fire('Berhasil', `Akun Wali Kelas untuk ${nama_guru} berhasil dibuat`, 'success');
+                document.getElementById('formCreateGuru').reset();
+                loadGuruList();
+            }
+        });
+
+        // 4. TAMBAH AKUN SISWA
+        document.getElementById('formCreateSiswa')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nama_lengkap = document.getElementById('siswaNama').value.trim();
+            const kelas = document.getElementById('siswaKelasSelect').value;
+            const username = document.getElementById('siswaUsername').value.trim();
+            const password = document.getElementById('siswaPassword').value.trim();
+
+            const { error } = await supabase.from('master_siswa').insert([{
+                nama_lengkap,
+                kelas,
+                username,
+                password,
+                role: 'siswa'
+            }]);
+
+            if (error) {
+                Swal.fire('Gagal', error.message.includes('unique') ? 'Username sudah dipakai!' : error.message, 'error');
+            } else {
+                Swal.fire('Berhasil', `Akun Siswa ${nama_lengkap} (${kelas}) berhasil dibuat`, 'success');
+                document.getElementById('formCreateSiswa').reset();
+            }
+        });
+
+        // 5. TAMBAH PENGUMUMAN / MEMORY SEKOLAH (DENGAN UPLOAD GAMBAR)
+        document.getElementById('formCreatePengumuman')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btnSubmitInfo');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengunggah...';
+
+            const kategori = document.getElementById('kategoriInfo').value;
+            const judul = document.getElementById('judulInfo').value.trim();
+            const isi = document.getElementById('isiInfo').value.trim();
+            const fileInput = document.getElementById('gambarInput');
+            const file = fileInput.files[0];
+
+            let image_url = null;
+
+            // UPLOAD FILE KE STORAGE SUPABASE JIKA ADA GAMBAR
+            if (file) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const filePath = `memory_images/${fileName}`;
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('school_media')
+                    .upload(filePath, file);
+
+                if (uploadError) {
+                    Swal.fire('Gagal Upload Gambar', uploadError.message, 'error');
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publikasikan Informasi';
+                    return;
+                }
+
+                // AMBIL PUBLIC URL GAMBAR
+                const { data: urlData } = supabase.storage
+                    .from('school_media')
+                    .getPublicUrl(filePath);
+
+                image_url = urlData.publicUrl;
+            }
+
+            // SIMPAN DATA KE TABEL
+            const { error } = await supabase.from('pengumuman_sekolah').insert([{
+                kategori,
+                judul,
+                isi,
+                image_url
+            }]);
+
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publikasikan Informasi';
+
+            if (error) {
+                Swal.fire('Gagal', error.message, 'error');
+            } else {
+                Swal.fire('Berhasil', `${kategori} berhasil dipublikasikan`, 'success');
+                document.getElementById('formCreatePengumuman').reset();
+                loadInfoList();
+            }
+        });
+
+        // 6. RENDER DATA TABEL
+        async function loadGuruList() {
+            const { data: guru } = await supabase.from('master_guru').select('*');
+            let html = '';
+            if (guru && guru.length > 0) {
+                guru.forEach(g => {
+                    html += `<tr><td><b>${g.nama_guru}</b></td><td>${g.wali_kelas_dari}</td><td><code>${g.username}</code></td></tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="3" style="text-align:center; color:#64748b;">Belum ada akun Wali Kelas.</td></tr>';
+            }
+            document.getElementById('listGuruTable').innerHTML = html;
+        }
+
+        async function loadMasterKelasList() {
+            const { data: kelas } = await supabase.from('master_kelas').select('*');
+            let html = '';
+            if (kelas && kelas.length > 0) {
+                kelas.forEach(k => {
+                    html += `<tr><td><b>${k.nama_kelas}</b></td><td><span style="font-size:10px; color:#94a3b8;">${k.group_wa_id || 'Belum diisi'}</span></td></tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="2" style="text-align:center; color:#64748b;">Belum ada data kelas.</td></tr>';
+            }
+            document.getElementById('listKelasTable').innerHTML = html;
+        }
+
+        async function loadInfoList() {
+            const { data: info } = await supabase.from('pengumuman_sekolah').select('*').order('created_at', { ascending: false });
+            let html = '';
+            if (info && info.length > 0) {
+                info.forEach(i => {
+                    const imgTag = i.image_url ? `<img src="${i.image_url}" class="img-thumb" alt="Foto">` : '<span style="color:#64748b;">-</span>';
+                    html += `<tr><td>${imgTag}</td><td><span style="color:#a855f7; font-weight:bold;">${i.kategori}</span></td><td><b>${i.judul}</b></td></tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="3" style="text-align:center; color:#64748b;">Belum ada pengumuman atau memory tersimpan.</td></tr>';
+            }
+            document.getElementById('listInfoTable').innerHTML = html;
         }
     </script>
 </body>
