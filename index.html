@@ -214,7 +214,7 @@
             const password = document.getElementById('loginPassword').value.trim();
 
             if (role === 'siswa') {
-                const { data, error } = await supabase.from('master_siswa').select('*').eq('username', username).eq('password', password).single();
+                const { data, error } = await supabase.from('master_siswa').select('*').eq('username', username).eq('password', password).maybesingle();
                 if (error || !data) {
                     Swal.fire('Login Gagal', 'Username/Password Siswa Salah', 'error');
                 } else {
@@ -222,7 +222,7 @@
                     cekSession();
                 }
             } else {
-                const { data, error } = await supabase.from('master_guru').select('*').eq('username', username).eq('password', password).single();
+                const { data, error } = await supabase.from('master_guru').select('*').eq('username', username).eq('password', password).maybesingle();
                 if (error || !data) {
                     Swal.fire('Login Gagal', 'Username/Password Wali Kelas Salah', 'error');
                 } else {
