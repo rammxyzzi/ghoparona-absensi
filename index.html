@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi Siswa</title>
+    <title>Portal Absensi Sekolah</title>
     <!-- SweetAlert2 & FontAwesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -40,10 +40,17 @@
     <!-- SECTION LOGIN -->
     <div class="card" id="loginCard">
         <div class="header">
-            <h2>Portal Absensi</h2>
-            <p>Silakan masuk menggunakan akun Anda</p>
+            <h2>Portal Absensi Sekolah</h2>
+            <p>Masuk sebagai Siswa atau Wali Kelas</p>
         </div>
         <form id="formLogin">
+            <div class="form-group">
+                <label>Role / Tipe Akun</label>
+                <select id="loginRole" required>
+                    <option value="siswa">Siswa</option>
+                    <option value="guru">Wali Kelas</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label>Username</label>
                 <input type="text" id="loginUsername" placeholder="Masukkan username" required>
@@ -52,7 +59,7 @@
                 <label>Password</label>
                 <input type="password" id="loginPassword" placeholder="Masukkan password" required>
             </div>
-            <button type="submit" class="btn-primary" id="btnLogin"><i class="fa-solid fa-right-to-bracket"></i> Masuk</button>
+            <button type="submit" class="btn-primary" id="btnLogin">Masuk &rarr;</button>
         </form>
     </div>
 
@@ -85,72 +92,78 @@
         let videoStream = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            checkSession();
+            cekSession();
         });
 
-        function checkSession() {
+        function cekSession() {
             const session = localStorage.getItem('userSession');
             if (session) {
                 const user = JSON.parse(session);
                 document.getElementById('loginCard').style.display = 'none';
                 document.getElementById('absensiCard').style.display = 'block';
 
-                // Menampilkan nama lengkap dan kelas dari session
-                document.getElementById('dispNamaSiswa').innerText = user.nama_lengkap || user.nama || user.username;
-                document.getElementById('dispKelasSiswa').innerText = `Kelas: ${user.kelas || '-'}`;
+                const nama = user.nama_lengkap || user.nama_guru || user.username;
+                const kelas = user.kelas || user.wali_kelas_dari || '-';
+
+                document.getElementById('dispNamaSiswa').innerText = nama;
+                document.getElementById('dispKelasSiswa').innerText = `Kelas/Akses: ${kelas}`;
             } else {
                 document.getElementById('loginCard').style.display = 'block';
                 document.getElementById('absensiCard').style.display = 'none';
             }
         }
 
-        // HANDLE LOGIN
+        // LOGIC LOGIN (SISWA & GURU)
         document.getElementById('formLogin')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const usernameInput = document.getElementById('loginUsername').value.trim();
-            const passwordInput = document.getElementById('loginPassword').value.trim();
+            const role = document.getElementById('loginRole').value;
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
             const btnLogin = document.getElementById('btnLogin');
 
             btnLogin.disabled = true;
-            btnLogin.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa...';
+            btnLogin.innerText = 'Memeriksa...';
 
-            // 1. Cek di tabel master_siswa
-            const { data: siswaData, error: siswaErr } = await supabase
-                .from('master_siswa')
-                .select('*')
-                .eq('username', usernameInput)
-                .eq('password', passwordInput)
-                .single();
+            if (role === 'siswa') {
+                // Menggunakan array tanpa .single() / .maybeSingle() untuk cegah Error 406
+                const { data, error } = await supabase
+                    .from('master_siswa')
+                    .select('*')
+                    .eq('username', username)
+                    .eq('password', password);
 
-            if (siswaData) {
-                // Simpan data lengkap ke localStorage
-                localStorage.setItem('userSession', JSON.stringify(siswaData));
-                Swal.fire('Berhasil Login', `Selamat datang, ${siswaData.nama_lengkap}`, 'success').then(() => {
-                    checkSession();
-                });
                 btnLogin.disabled = false;
-                btnLogin.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk';
-                return;
-            }
+                btnLogin.innerHTML = 'Masuk &rarr;';
 
-            // 2. Cek di tabel master_guru jika bukan siswa
-            const { data: guruData } = await supabase
-                .from('master_guru')
-                .select('*')
-                .eq('username', usernameInput)
-                .eq('password', passwordInput)
-                .single();
-
-            btnLogin.disabled = false;
-            btnLogin.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk';
-
-            if (guruData) {
-                localStorage.setItem('userSession', JSON.stringify(guruData));
-                Swal.fire('Berhasil Login', `Selamat datang Wali Kelas ${guruData.nama_guru}`, 'success').then(() => {
-                    checkSession();
-                });
+                if (error || !data || data.length === 0) {
+                    Swal.fire('Login Gagal', 'Username atau Password Siswa salah!', 'error');
+                } else {
+                    const user = data[0];
+                    localStorage.setItem('userSession', JSON.stringify({ ...user, role: 'siswa' }));
+                    Swal.fire('Berhasil', `Selamat datang, ${user.nama_lengkap}`, 'success').then(() => {
+                        cekSession();
+                    });
+                }
             } else {
-                Swal.fire('Login Gagal', 'Username atau password salah!', 'error');
+                // Menggunakan array tanpa .single() / .maybeSingle() untuk cegah Error 406
+                const { data, error } = await supabase
+                    .from('master_guru')
+                    .select('*')
+                    .eq('username', username)
+                    .eq('password', password);
+
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = 'Masuk &rarr;';
+
+                if (error || !data || data.length === 0) {
+                    Swal.fire('Login Gagal', 'Username atau Password Wali Kelas salah!', 'error');
+                } else {
+                    const user = data[0];
+                    localStorage.setItem('userSession', JSON.stringify({ ...user, role: 'wali_kelas' }));
+                    Swal.fire('Berhasil', `Selamat datang, ${user.nama_guru}`, 'success').then(() => {
+                        cekSession();
+                    });
+                }
             }
         });
 
@@ -168,7 +181,7 @@
                 btnStart.style.display = 'none';
                 btnKirim.style.display = 'block';
             } catch (err) {
-                Swal.fire('Kamera Akses Ditolak', 'Izinkan akses kamera pada browser Anda.', 'error');
+                Swal.fire('Akses Kamera Ditolak', 'Harap izinkan akses kamera pada browser Anda.', 'error');
             }
         });
 
@@ -176,28 +189,25 @@
         document.getElementById('btnKirimAbsen')?.addEventListener('click', async () => {
             const btnKirim = document.getElementById('btnKirimAbsen');
             btnKirim.disabled = true;
-            btnKirim.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan Absen...';
+            btnKirim.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
 
             const user = JSON.parse(localStorage.getItem('userSession'));
             if (!user) {
-                Swal.fire('Sesi Habis', 'Silakan login kembali', 'warning');
+                Swal.fire('Sesi Habis', 'Silakan login kembali.', 'warning');
                 logout();
                 return;
             }
 
-            // Ambil canvas & tangkap gambar dari video
             const video = document.getElementById('webcam');
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
             const ctx = canvas.getContext('2d');
             
-            // Mirroring foto agar tidak terbalik
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Ubah gambar ke blob untuk dikirim ke Storage Supabase
             canvas.toBlob(async (blob) => {
                 let fotoUrl = null;
 
@@ -215,12 +225,10 @@
                     }
                 }
 
-                // MENYESUAIKAN DENGAN STRUKTUR PROPERTI DARI MASTER_SISWA
-                const namaTersimpan = user.nama_lengkap || user.nama_guru || user.nama || user.username;
+                const namaTersimpan = user.nama_lengkap || user.nama_guru || user.username;
                 const kelasTersimpan = user.kelas || user.wali_kelas_dari || '-';
                 const todayStr = new Date().toISOString().split('T')[0];
 
-                // Kirim Data ke Tabel Absensi Supabase
                 const { error: insertError } = await supabase
                     .from('absensi')
                     .insert([
@@ -239,7 +247,7 @@
                 if (insertError) {
                     Swal.fire('Gagal Absen', insertError.message, 'error');
                 } else {
-                    Swal.fire('Berhasil!', 'Absensi Anda hari ini berhasil disimpan.', 'success').then(() => {
+                    Swal.fire('Berhasil!', 'Absensi Anda berhasil dicatat.', 'success').then(() => {
                         stopCamera();
                         location.reload();
                     });
@@ -262,7 +270,7 @@
         function logout() {
             stopCamera();
             localStorage.removeItem('userSession');
-            checkSession();
+            cekSession();
         }
     </script>
 </body>
