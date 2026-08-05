@@ -143,6 +143,12 @@
             border-bottom-left-radius: 2px;
         }
 
+        /* TABLE RESPONSIVE */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        th { background: rgba(255, 255, 255, 0.05); color: #38bdf8; font-weight: 600; }
+
         /* FLOATING BOTTOM NAV BAR */
         .bottom-nav {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
@@ -169,7 +175,7 @@
 
     <div class="app-container">
 
-        <!-- ================= 1. HALAMAN LOGIN SISWA ================= -->
+        <!-- ================= 1. HALAMAN LOGIN AKUN ================= -->
         <div id="loginScreen" class="card" style="margin-top: 50px;">
             <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
                 <button class="lang-btn" onclick="toggleLanguage()">
@@ -178,7 +184,7 @@
             </div>
             <div style="font-size: 40px; margin-bottom: 10px; text-align: center;">🎓</div>
             <h2 id="txtLoginTitle" style="font-size: 20px; margin-bottom: 6px; text-align: center;">Login - Account</h2>
-            <p id="txtLoginDesc" style="font-size: 12px; color: #94a3b8; margin-bottom: 20px; text-align: center;">Masukkan Username dan Password akun kamu.</p>
+            <p id="txtLoginDesc" style="font-size: 12px; color: #94a3b8; margin-bottom: 20px; text-align: center;">Masukkan Username dan Password akun kamu (Siswa / Wali Kelas).</p>
 
             <form id="formLogin">
                 <div class="form-group">
@@ -193,7 +199,58 @@
             </form>
         </div>
 
-        <!-- ================= 2. HALAMAN MAIN DASHBOARD ================= -->
+        <!-- ================= 2. HALAMAN DASHBOARD WALI KELAS ================= -->
+        <div id="waliDashboardScreen" style="display: none;">
+            <div class="header">
+                <div class="user-info">
+                    <div class="avatar" id="waliAvatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">WK</div>
+                    <div>
+                        <div style="font-size: 12px; color: #94a3b8;">Wali Kelas 👋</div>
+                        <div style="font-weight: 700;" id="waliName">Wali Kelas</div>
+                    </div>
+                </div>
+                <i class="fa-solid fa-right-from-bracket" id="btnWaliLogout" style="font-size: 18px; color: #ef4444; cursor: pointer;" title="Logout"></i>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fa-solid fa-chalkboard"></i>
+                    <div class="stat-title">Kelas Binaan</div>
+                    <div class="stat-value" id="waliKelasBinaan">-</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-users"></i>
+                    <div class="stat-title">Total Siswa</div>
+                    <div class="stat-value" id="waliTotalSiswa">0</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-clipboard-user"></i> Rekap Absensi Hari Ini</h3>
+                
+                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <span style="background: rgba(34,197,94,0.2); color: #4ade80; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold;" id="badgeHadir">Hadir: 0</span>
+                    <span style="background: rgba(239,68,68,0.2); color: #f87171; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold;" id="badgeBelum">Belum Absen: 0</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Siswa</th>
+                                <th>Status Hari Ini</th>
+                                <th>Jam Absen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listRekapWaliTable">
+                            <tr><td colspan="3" style="text-align: center; color: #64748b;">Memuat rekap...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 3. HALAMAN MAIN DASHBOARD SISWA ================= -->
         <div id="dashboardScreen" style="display: none;">
             
             <!-- TOP HEADER -->
@@ -469,12 +526,26 @@
             }
         }
 
-        // 3. CEK SESSION LOGIN
+        // 3. CEK SESSION LOGIN (SISWA / WALI KELAS)
         function cekSessionLogin() {
-            const sessionData = localStorage.getItem('siswaSession');
-            if (sessionData) {
-                const session = JSON.parse(sessionData);
+            const sessionWali = localStorage.getItem('waliSession');
+            const sessionSiswa = localStorage.getItem('siswaSession');
+
+            if (sessionWali) {
+                const wali = JSON.parse(sessionWali);
                 document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardScreen').style.display = 'none';
+                document.getElementById('waliDashboardScreen').style.display = 'block';
+
+                document.getElementById('waliName').innerText = wali.nama;
+                document.getElementById('waliAvatar').innerText = wali.nama.substring(0, 2).toUpperCase();
+                document.getElementById('waliKelasBinaan').innerText = wali.kelas;
+
+                loadRekapWaliKelas(wali.kelas);
+            } else if (sessionSiswa) {
+                const session = JSON.parse(sessionSiswa);
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('waliDashboardScreen').style.display = 'none';
                 document.getElementById('dashboardScreen').style.display = 'block';
 
                 document.getElementById('userName').innerText = session.nama;
@@ -489,10 +560,11 @@
             } else {
                 document.getElementById('loginScreen').style.display = 'block';
                 document.getElementById('dashboardScreen').style.display = 'none';
+                document.getElementById('waliDashboardScreen').style.display = 'none';
             }
         }
 
-        // 4. PROSES LOGIN
+        // 4. PROSES LOGIN (CEK MASTER_SISWA & WALI_KELAS)
         const formLogin = document.getElementById('formLogin');
         if (formLogin) {
             formLogin.addEventListener('submit', async (e) => {
@@ -500,36 +572,108 @@
                 const username = document.getElementById('loginUsername').value.trim().toLowerCase();
                 const password = document.getElementById('loginPassword').value.trim();
 
-                const { data: siswaValid, error } = await supabase
+                let { data: siswaValid } = await supabase
                     .from('master_siswa')
                     .select('*')
                     .eq('username', username)
                     .eq('password', password)
                     .single();
 
-                if (error || !siswaValid) {
-                    Swal.fire({ 
-                        icon: 'error', 
-                        title: currentLang === 'id' ? 'Login Gagal!' : 'Login Failed!', 
-                        text: currentLang === 'id' ? 'Username atau Password salah.' : 'Incorrect username or password.' 
-                    });
-                } else {
+                if (siswaValid) {
                     localStorage.setItem('siswaSession', JSON.stringify(siswaValid));
-                    Swal.fire({ icon: 'success', title: currentLang === 'id' ? 'Login Berhasil!' : 'Login Successful!', timer: 1200, showConfirmButton: false });
+                    Swal.fire({ icon: 'success', title: currentLang === 'id' ? 'Login Siswa Berhasil!' : 'Student Login Successful!', timer: 1200, showConfirmButton: false });
                     cekSessionLogin();
+                    return;
                 }
+
+                let { data: waliValid } = await supabase
+                    .from('wali_kelas')
+                    .select('*')
+                    .eq('username', username)
+                    .eq('password', password)
+                    .single();
+
+                if (waliValid) {
+                    localStorage.setItem('waliSession', JSON.stringify(waliValid));
+                    Swal.fire({ icon: 'success', title: currentLang === 'id' ? 'Login Wali Kelas Berhasil!' : 'Homeroom Login Successful!', timer: 1200, showConfirmButton: false });
+                    cekSessionLogin();
+                    return;
+                }
+
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: currentLang === 'id' ? 'Login Gagal!' : 'Login Failed!', 
+                    text: currentLang === 'id' ? 'Username atau Password salah.' : 'Incorrect username or password.' 
+                });
             });
         }
 
         // 5. LOGOUT
         function logout() {
             localStorage.removeItem('siswaSession');
+            localStorage.removeItem('waliSession');
             location.reload();
         }
         document.getElementById('btnLogout')?.addEventListener('click', logout);
         document.getElementById('btnExit')?.addEventListener('click', logout);
+        document.getElementById('btnWaliLogout')?.addEventListener('click', logout);
 
-        // 6. BUKA KAMERA & SCAN AI
+        // 6. LOAD REKAP WALI KELAS
+        async function loadRekapWaliKelas(kelasWali) {
+            const { data: listSiswa } = await supabase
+                .from('master_siswa')
+                .select('*')
+                .eq('kelas', kelasWali);
+
+            document.getElementById('waliTotalSiswa').innerText = listSiswa ? listSiswa.length : 0;
+
+            const todayStr = new Date().toLocaleDateString('id-ID', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+            });
+
+            const { data: listAbsenHariIni } = await supabase
+                .from('absensi')
+                .select('*')
+                .eq('kelas', kelasWali)
+                .eq('tanggal', todayStr);
+
+            let hadirCount = 0;
+            let tbodyHtml = '';
+
+            if (listSiswa && listSiswa.length > 0) {
+                listSiswa.forEach(siswa => {
+                    const absenSiswa = listAbsenHariIni?.find(a => a.nama.toLowerCase() === siswa.nama.toLowerCase());
+
+                    if (absenSiswa) {
+                        hadirCount++;
+                        let jamAbsen = new Date(absenSiswa.waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        tbodyHtml += `
+                            <tr>
+                                <td><b>${siswa.nama}</b></td>
+                                <td><span style="color: #4ade80; font-weight: bold;">Hadir</span></td>
+                                <td>${jamAbsen} WIB</td>
+                            </tr>
+                        `;
+                    } else {
+                        tbodyHtml += `
+                            <tr>
+                                <td><b>${siswa.nama}</b></td>
+                                <td><span style="color: #f87171; font-weight: bold;">Belum Absen / Alfa</span></td>
+                                <td>-</td>
+                            </tr>
+                        `;
+                    }
+                });
+            } else {
+                tbodyHtml = `<tr><td colspan="3" style="text-align: center; color: #64748b;">Belum ada data siswa di kelas ini.</td></tr>`;
+            }
+
+            document.getElementById('badgeHadir').innerText = `Hadir: ${hadirCount}`;
+            document.getElementById('badgeBelum').innerText = `Belum Absen: ${(listSiswa?.length || 0) - hadirCount}`;
+            document.getElementById('listRekapWaliTable').innerHTML = tbodyHtml;
+        }
+
+        // 7. BUKA KAMERA & SCAN AI
         btnStartCamera?.addEventListener('click', async () => {
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
@@ -589,7 +733,7 @@
             }
         }
 
-        // 7. PROSES ABSEN & UPLOAD FOTO
+        // 8. PROSES ABSEN & UPLOAD FOTO KE GRUP KELAS MASING-MASING
         btnTakeAbsen?.addEventListener('click', async () => {
             isScanning = false;
             const sessionData = localStorage.getItem('siswaSession');
@@ -649,9 +793,9 @@
                 .select('*', { count: 'exact', head: true })
                 .eq('nama', siswa.nama);
 
-            // WASENDER API
+            // WASENDER API (MENGAMBIL GROUP_WA BERDASARKAN KELAS SISWA)
             const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
-            const noHpTujuan = '6283872851796';
+            const noHpTujuan = siswa.group_wa || '6283872851796'; // Fallback ke default jika belum diisi
 
             const pesanWA = 
                 `*📌 ABSENSI SISWA*\n\n` +
@@ -705,7 +849,7 @@
             absenStatusText.innerText = currentLang === 'id' ? "Absen selesai untuk hari ini." : "Attendance completed for today.";
         });
 
-        // 8. FITUR AI CHATBOT INTERAKTIF
+        // 9. FITUR AI CHATBOT INTERAKTIF
         const formAiChat = document.getElementById('formAiChat');
         const chatContainer = document.getElementById('chatContainer');
 
@@ -741,7 +885,7 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         });
 
-        // 9. LOAD INFORMASI SEKOLAH
+        // 10. LOAD INFORMASI SEKOLAH
         async function loadInfoSekolah() {
             const list = document.getElementById('infoSekolahList');
             const { data } = await supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
@@ -759,7 +903,7 @@
             }
         }
 
-        // 10. LOAD MEMORY SEKOLAH
+        // 11. LOAD MEMORY SEKOLAH
         async function loadMemorySekolah() {
             const list = document.getElementById('memorySekolahList');
             const { data } = await supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
@@ -779,7 +923,7 @@
             }
         }
 
-        // 11. NAVIGASI TAB BOTTOM BAR
+        // 12. NAVIGASI TAB BOTTOM BAR
         window.switchTab = function(tabName, el) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
