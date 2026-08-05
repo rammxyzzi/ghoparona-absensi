@@ -124,7 +124,7 @@
             <div class="header-admin">
                 <div>
                     <h2 style="font-size: 18px; color: #38bdf8;"><i class="fa-solid fa-user-shield"></i> Panel Kontrol Admin</h2>
-                    <p style="font-size: 11px; color: #94a3b8;">Kelola Siswa, Absensi, Informasi, Memory & Notifikasi HP</p>
+                    <p style="font-size: 11px; color: #94a3b8;">Kelola Siswa, Wali Kelas, Absensi, Informasi, Memory & Notifikasi</p>
                 </div>
                 <button id="btnAdminLogout" class="btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
             </div>
@@ -133,6 +133,7 @@
             <div class="admin-nav">
                 <button class="nav-btn active" onclick="switchAdminTab('Absensi', this)"><i class="fa-solid fa-list-check"></i> Riwayat Absen</button>
                 <button class="nav-btn" onclick="switchAdminTab('MasterSiswa', this)"><i class="fa-solid fa-users"></i> Data Siswa</button>
+                <button class="nav-btn" onclick="switchAdminTab('WaliKelas', this)"><i class="fa-solid fa-chalkboard-user"></i> Akun Wali Kelas</button>
                 <button class="nav-btn" onclick="switchAdminTab('InfoSekolah', this)"><i class="fa-solid fa-bullhorn"></i> Info Sekolah</button>
                 <button class="nav-btn" onclick="switchAdminTab('MemorySekolah', this)"><i class="fa-solid fa-images"></i> Memory Sekolah</button>
                 <button class="nav-btn" onclick="switchAdminTab('NotifHp', this)"><i class="fa-solid fa-bell"></i> Notif HP Siswa</button>
@@ -185,6 +186,10 @@
                                 <input type="text" id="addPassword" placeholder="Contoh: 123456" required>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label>Nomor / ID Grup WhatsApp Kelas</label>
+                            <input type="text" id="addGroupWa" placeholder="Contoh: 628123456789-group" required>
+                        </div>
                         <button type="submit" class="btn-primary" style="margin-top: 5px;">+ Simpan Akun Siswa</button>
                     </form>
                 </div>
@@ -199,18 +204,69 @@
                                     <th>Kelas</th>
                                     <th>Username</th>
                                     <th>Password</th>
+                                    <th>Grup WA Kelas</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="listSiswaTable">
-                                <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Memuat data siswa...</td></tr>
+                                <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Memuat data siswa...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 3: KELOLA INFORMASI SEKOLAH -->
+            <!-- TAB 3: KELOLA WALI KELAS -->
+            <div id="tabWaliKelas" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-user-tie"></i> Tambah Akun Wali Kelas</h3>
+                    <form id="formTambahWali">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Nama Wali Kelas</label>
+                                <input type="text" id="addWaliNama" placeholder="Contoh: Budi, S.Pd" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kelas Binaan</label>
+                                <input type="text" id="addWaliKelas" placeholder="Contoh: XII C++" required>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Username Login</label>
+                                <input type="text" id="addWaliUsername" placeholder="Contoh: walikelas12" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password Login</label>
+                                <input type="text" id="addWaliPassword" placeholder="Contoh: 123456" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top: 5px;">+ Simpan Akun Wali Kelas</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-users-rectangle"></i> Daftar Wali Kelas Terdaftar</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama Wali Kelas</th>
+                                    <th>Kelas</th>
+                                    <th>Username</th>
+                                    <th>Password</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listWaliTable">
+                                <tr><td colspan="5" style="text-align: center; color: #64748b;">Memuat data wali kelas...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: KELOLA INFORMASI SEKOLAH -->
             <div id="tabInfoSekolah" class="tab-content">
                 <div class="card">
                     <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bullhorn"></i> Tambah Informasi / Pengumuman</h3>
@@ -235,7 +291,7 @@
                 </div>
             </div>
 
-            <!-- TAB 4: KELOLA MEMORY SEKOLAH -->
+            <!-- TAB 5: KELOLA MEMORY SEKOLAH -->
             <div id="tabMemorySekolah" class="tab-content">
                 <div class="card">
                     <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-image"></i> Tambah Memory Galeri Foto</h3>
@@ -264,7 +320,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: KIRIM NOTIFIKASI REALTIME KE HP SISWA -->
+            <!-- TAB 6: KIRIM NOTIFIKASI REALTIME KE HP SISWA -->
             <div id="tabNotifHp" class="tab-content">
                 <div class="card">
                     <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bell"></i> Kirim Notifikasi Realtime ke HP Siswa</h3>
@@ -309,6 +365,7 @@
 
                 loadAbsensiData();
                 loadSiswaData();
+                loadWaliData();
                 loadInfoData();
                 loadMemoryData();
             } else {
@@ -371,13 +428,14 @@
                         <td>${siswa.kelas}</td>
                         <td><code>${siswa.username}</code></td>
                         <td><code>${siswa.password}</code></td>
+                        <td><code>${siswa.group_wa || '-'}</code></td>
                         <td>
                             <button class="btn-danger" onclick="hapusSiswa(${siswa.id})"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `).join('');
             } else {
-                table.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Belum ada siswa terdaftar.</td></tr>`;
+                table.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b;">Belum ada siswa terdaftar.</td></tr>`;
             }
         }
 
@@ -387,8 +445,9 @@
             const kelas = document.getElementById('addKelas').value.trim();
             const username = document.getElementById('addUsername').value.trim().toLowerCase();
             const password = document.getElementById('addPassword').value.trim();
+            const group_wa = document.getElementById('addGroupWa').value.trim();
 
-            const { error } = await supabase.from('master_siswa').insert([{ nama, kelas, username, password }]);
+            const { error } = await supabase.from('master_siswa').insert([{ nama, kelas, username, password, group_wa }]);
             if (error) {
                 Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
             } else {
@@ -405,7 +464,53 @@
             }
         }
 
-        // 3. KELOLA INFORMASI SEKOLAH
+        // 3. KELOLA WALI KELAS
+        async function loadWaliData() {
+            const table = document.getElementById('listWaliTable');
+            const { data } = await supabase.from('wali_kelas').select('*').order('id', { ascending: false });
+
+            if (data && data.length > 0) {
+                table.innerHTML = data.map(wali => `
+                    <tr>
+                        <td><b>${wali.nama}</b></td>
+                        <td>${wali.kelas}</td>
+                        <td><code>${wali.username}</code></td>
+                        <td><code>${wali.password}</code></td>
+                        <td>
+                            <button class="btn-danger" onclick="hapusWali(${wali.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                table.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">Belum ada wali kelas terdaftar.</td></tr>`;
+            }
+        }
+
+        document.getElementById('formTambahWali')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nama = document.getElementById('addWaliNama').value.trim();
+            const kelas = document.getElementById('addWaliKelas').value.trim();
+            const username = document.getElementById('addWaliUsername').value.trim().toLowerCase();
+            const password = document.getElementById('addWaliPassword').value.trim();
+
+            const { error } = await supabase.from('wali_kelas').insert([{ nama, kelas, username, password }]);
+            if (error) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+            } else {
+                Swal.fire({ icon: 'success', title: 'Wali Kelas Ditambahkan', timer: 1000, showConfirmButton: false });
+                document.getElementById('formTambahWali').reset();
+                loadWaliData();
+            }
+        });
+
+        window.hapusWali = async function(id) {
+            if (confirm('Yakin ingin menghapus akun wali kelas ini?')) {
+                await supabase.from('wali_kelas').delete().eq('id', id);
+                loadWaliData();
+            }
+        }
+
+        // 4. KELOLA INFORMASI SEKOLAH
         async function loadInfoData() {
             const list = document.getElementById('adminInfoList');
             const { data } = await supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
@@ -447,7 +552,7 @@
             }
         }
 
-        // 4. KELOLA MEMORY SEKOLAH
+        // 5. KELOLA MEMORY SEKOLAH
         async function loadMemoryData() {
             const grid = document.getElementById('adminMemoryGrid');
             const { data } = await supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
@@ -491,7 +596,7 @@
             }
         }
 
-        // 5. KIRIM NOTIFIKASI REALTIME KE HP SISWA
+        // 6. KIRIM NOTIFIKASI REALTIME KE HP SISWA
         document.getElementById('formKirimNotifHp')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const judul = document.getElementById('notifAdminJudul').value.trim();
