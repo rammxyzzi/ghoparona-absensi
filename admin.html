@@ -402,16 +402,24 @@
 
         // 6. NOTIF HP SISWA (REALTIME BROADCAST)
         async function sendBroadcastNotif(e) {
-            e.preventDefault();
-            const pesan = document.getElementById('notifPesan').value;
-            const { error } = await _supabase.from('notif_hp').insert([{ pesan: pesan }]);
-            if(error) {
-                Swal.fire('Error', error.message, 'error');
-            } else {
-                Swal.fire('Terkirim!', 'Notifikasi berhasil dibroadcast ke HP siswa.', 'success');
-                document.getElementById('formNotif').reset();
+        e.preventDefault();
+        const pesan = document.getElementById('notifPesan').value;
+        
+        // Kita kirim 'judul' dan 'pesan' sekaligus untuk menghindari error not-null constraint
+        const { error } = await _supabase.from('notif_hp').insert([
+            { 
+                judul: 'Informasi Terbaru', 
+                pesan: pesan 
             }
+        ]);
+        
+        if(error) {
+            Swal.fire('Error', error.message, 'error');
+        } else {
+            Swal.fire('Terkirim!', 'Notifikasi berhasil dibroadcast ke HP siswa.', 'success');
+            document.getElementById('formNotif').reset();
         }
+    }
 
         // UNIVERSAL DELETE
         async function deleteRow(table, id) {
