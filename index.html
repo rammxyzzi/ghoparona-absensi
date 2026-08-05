@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Account</title>
+    <title>Login & Dashboard - Account</title>
     <!-- SweetAlert2 & FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -11,6 +11,9 @@
     
     <!-- Library Face-API AI Detection -->
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -389,8 +392,12 @@
     </div>
 
     <!-- SCRIPT UTAMA MODULE -->
-    <script type="module">
-        import { supabase } from './supabase.js';
+    <script>
+        // INISIALISASI SUPABASE MENGGUNAKAN CDN
+        const SUPABASE_URL = 'GANTI_URL_SUPABASE_ANDA_DI_SINI';
+        const SUPABASE_ANON_KEY = 'GANTI_ANON_KEY_SUPABASE_ANDA_DI_SINI';
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let videoStream = null;
         let isFaceModelLoaded = false;
@@ -572,7 +579,7 @@
                 const username = document.getElementById('loginUsername').value.trim().toLowerCase();
                 const password = document.getElementById('loginPassword').value.trim();
 
-                let { data: siswaValid } = await supabase
+                let { data: siswaValid } = await _supabase
                     .from('master_siswa')
                     .select('*')
                     .eq('username', username)
@@ -586,7 +593,7 @@
                     return;
                 }
 
-                let { data: waliValid } = await supabase
+                let { data: waliValid } = await _supabase
                     .from('wali_kelas')
                     .select('*')
                     .eq('username', username)
@@ -620,7 +627,7 @@
 
         // 6. LOAD REKAP WALI KELAS
         async function loadRekapWaliKelas(kelasWali) {
-            const { data: listSiswa } = await supabase
+            const { data: listSiswa } = await _supabase
                 .from('master_siswa')
                 .select('*')
                 .eq('kelas', kelasWali);
@@ -631,7 +638,7 @@
                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
             });
 
-            const { data: listAbsenHariIni } = await supabase
+            const { data: listAbsenHariIni } = await _supabase
                 .from('absensi')
                 .select('*')
                 .eq('kelas', kelasWali)
@@ -757,13 +764,13 @@
             const fileName = `absen_${siswa.nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
             let fotoUrl = '-';
 
-            const { data: uploadData, error: uploadError } = await supabase
+            const { data: uploadData, error: uploadError } = await _supabase
                 .storage
                 .from('foto-absen')
                 .upload(fileName, blob, { contentType: 'image/jpeg' });
 
             if (!uploadError) {
-                const { data: publicUrlData } = supabase
+                const { data: publicUrlData } = _supabase
                     .storage
                     .from('foto-absen')
                     .getPublicUrl(fileName);
@@ -778,7 +785,7 @@
                 hour: '2-digit', minute: '2-digit', second: '2-digit' 
             });
 
-            await supabase.from('absensi').insert([{
+            await _supabase.from('absensi').insert([{
                 nama: siswa.nama,
                 kelas: siswa.kelas,
                 tanggal: tanggalFormatted,
@@ -788,7 +795,7 @@
                 foto_url: fotoUrl
             }]);
 
-            const { count: totalHadir } = await supabase
+            const { count: totalHadir } = await _supabase
                 .from('absensi')
                 .select('*', { count: 'exact', head: true })
                 .eq('nama', siswa.nama);
@@ -888,7 +895,7 @@
         // 10. LOAD INFORMASI SEKOLAH
         async function loadInfoSekolah() {
             const list = document.getElementById('infoSekolahList');
-            const { data } = await supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
+            const { data } = await _supabase.from('informasi_sekolah').select('*').order('id', { ascending: false });
 
             if (data && data.length > 0) {
                 list.innerHTML = data.map(info => `
@@ -906,7 +913,7 @@
         // 11. LOAD MEMORY SEKOLAH
         async function loadMemorySekolah() {
             const list = document.getElementById('memorySekolahList');
-            const { data } = await supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
+            const { data } = await _supabase.from('memory_sekolah').select('*').order('id', { ascending: false });
 
             if (data && data.length > 0) {
                 list.innerHTML = data.map(mem => `
