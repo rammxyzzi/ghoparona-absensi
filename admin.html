@@ -12,8 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- File Konfigurasi Supabase Terpisah -->
-    <script src="supabase.js"></script>
 </head>
 <body class="bg-gray-100 font-sans">
 
@@ -194,8 +192,15 @@
         </main>
     </div>
 
-    <!-- SCRIPT LOGIKA UTAMA -->
+    <!-- SCRIPT LOGIKA UTAMA & KONFIGURASI SUPABASE -->
     <script>
+        // INISIALISASI SUPABASE KENCENG & LANGSUNG DIGABUNG
+        const SUPABASE_URL = 'GANTI_URL_SUPABASE_ANDA_DI_SINI';
+        const SUPABASE_ANON_KEY = 'GANTI_ANON_KEY_SUPABASE_ANDA_DI_SINI';
+        
+        // Membuat instance Supabase global (_supabase)
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // CEK LOGIN SEDERHANA
         window.addEventListener('DOMContentLoaded', () => {
             if(localStorage.getItem('isAdminLoggedIn') === 'true') {
