@@ -41,13 +41,52 @@ document.getElementById('btnAdminLogout')?.addEventListener('click', () => {
     location.reload();
 });
 
-// 1. LOAD RIWAYAT ABSENSI
-async function loadAbsensiData() {
+// 1. LOAD RIWAYAT ABSENSI DENGAN FILTER
+window.loadAbsensiData = async function() {
     const table = document.getElementById('listAbsensiTable');
-    const { data, error } = await supabase.from('absensi').select('*').order('id', { ascending: false });
+    const filterValue = document.getElementById('filterAbsenAdmin')?.value || 'semua';
+    
+    table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #94a3b8;">Memuat data absensi...</td></tr>`;
 
-    if (data && data.length > 0) {
-        table.innerHTML = data.map(item => `
+    let query = supabase.from('absensi').select('*').order('id', { ascending: false });
+    const { data, error } = await query;
+
+    if (error) {
+        table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ef4444;">Gagal memuat data.</td></tr>`;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">Belum ada riwayat absensi.</td></tr>`;
+        return;
+    }
+
+    // Logika Filter Berdasarkan Waktu
+    const now = new Date();
+    const filteredData = data.filter(item => {
+        const itemDate = new Date(item.waktu);
+        
+        if (filterValue === 'hari_ini') {
+            return itemDate.toDateString() === now.toDateString();
+        } 
+        else if (filterValue === 'kemarin') {
+            const yesterday = new Date();
+            yesterday.setDate(now.getDate() - 1);
+            return itemDate.toDateString() === yesterday.toDateString();
+        } 
+        else if (filterValue === 'bulan_ini') {
+            return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+        } 
+        else if (filterValue === 'bulan_kemarin') {
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+        }
+        
+        return true; // 'semua'
+    });
+
+    if (filteredData.length > 0) {
+        table.innerHTML = filteredData.map(item => `
             <tr>
                 <td>${new Date(item.waktu).toLocaleString('id-ID')}</td>
                 <td><b>${item.nama}</b></td>
@@ -60,10 +99,9 @@ async function loadAbsensiData() {
             </tr>
         `).join('');
     } else {
-        table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">Belum ada riwayat absensi.</td></tr>`;
+        table.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">Tidak ada data absensi untuk filter ini.</td></tr>`;
     }
 }
-
 // 2. KELOLA MASTER SISWA
 async function loadSiswaData() {
     const table = document.getElementById('listSiswaTable');
