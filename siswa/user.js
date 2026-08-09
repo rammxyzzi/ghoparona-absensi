@@ -358,16 +358,16 @@ btnTakeAbsen?.addEventListener('click', async () => {
         .eq('nama', siswa.nama);
 
     // WASENDER API
-    const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
+    const WASENDER_API_KEY = '46e8ca763fb05f8ed7008667fba6c1cb6419f9f76a92f3201d29d66e98b94a22';
     
     // Gunakan ID Grup (@g.us) atau Nomor WA Pribadi (format 628xxx)
     const daftarGrupKelas = {
-        "XII C++": "6281234567890", 
-        "X RPL 1": "6289876543210", 
-        "XI TKJ 2": "6285556667778"  
+        "XII C++": "6283872851796", 
+        "X RPL 1": "", 
+        "XI TKJ 2": ""  
     };
 
-    const nomorAdminCadangan = '6283872851796';
+    const nomorAdminCadangan = '';
     const targetTujuan = daftarGrupKelas[siswa.kelas] || nomorAdminCadangan;
 
     const pesanWA = 
