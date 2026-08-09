@@ -181,42 +181,54 @@
                     <button id="btnExit" class="btn-primary" style="background: #ef4444; margin-top: 10px;">Keluar Akun</button>
                 </div>
             </div>
-<div id="panelWaliKelas" class="card" style="display: none; margin-top: 20px; margin-bottom: 100px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-        <div>
-            <h3 style="font-size: 16px; color: #38bdf8; margin: 0;">
-                <i class="fa-solid fa-user-graduate"></i> Monitoring Absensi Kelas <span id="labelKelasWali">-</span>
-            </h3>
-            <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0;">
-                Daftar absensi khusus siswa di kelas Anda
-            </p>
-        </div>
-        <!-- TOMBOL CETAK LAPORAN -->
-        <button id="btnCetakWali" class="btn-primary" style="width: auto; padding: 8px 14px; background: linear-gradient(135deg, #16a34a, #15803d);" onclick="cetakLaporanWaliKelas()">
-            <i class="fa-solid fa-file-word"></i> Cetak Word & Kirim WA
-        </button>
-        </div>
-
-        <!-- TABEL RESPONSIF (GELAP & BISA DIGESER) -->
-        <div class="table-responsive" style="overflow-x: auto; width: 100%;">
-            <table style="width: 100%; border-collapse: collapse; min-width: 500px; text-align: left;">
-                <thead>
-                    <tr style="border-bottom: 1px solid #334155; color: #38bdf8; font-size: 13px;">
-                        <th style="padding: 10px; white-space: nowrap;">Waktu & Tanggal</th>
-                        <th style="padding: 10px; white-space: nowrap;">Nama Siswa</th>
-                        <th style="padding: 10px; white-space: nowrap;">Status</th>
-                        <th style="padding: 10px; white-space: nowrap;">Keterangan</th>
-                    </tr>
-                </thead>
-                <tbody id="listAbsensiWaliTable" style="font-size: 13px; color: #e2e8f0;">
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #94a3b8; padding: 15px;">Memuat data absensi kelas...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+            <div id="panelWaliKelas" class="card" style="display: none; margin-top: 20px; margin-bottom: 100px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 style="font-size: 16px; color: #38bdf8; margin: 0;">
+                            <i class="fa-solid fa-user-graduate"></i> Monitoring Absensi Kelas <span id="labelKelasWali">-</span>
+                        </h3>
+                        <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 0 0;">
+                            Daftar absensi khusus siswa di kelas Anda
+                        </p>
+                    </div>
+            
+                    <!-- TAMBAHAN FILTER WAKTU WALI KELAS -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 12px; color: #94a3b8;">Filter:</label>
+                        <select id="filterAbsenWali" onchange="loadAbsensiWaliKelas(JSON.parse(localStorage.getItem('siswaSession') || '{}').kelas)" style="padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 12px; outline: none;">
+                            <option value="semua" style="color: #000;">Semua Waktu</option>
+                            <option value="hari_ini" style="color: #000;" selected>Hari Ini</option>
+                            <option value="kemarin" style="color: #000;">Kemarin</option>
+                            <option value="bulan_ini" style="color: #000;">Bulan Ini</option>
+                            <option value="bulan_kemarin" style="color: #000;">Bulan Kemarin</option>
+                        </select>
+                    </div>
+            
+                    <!-- TOMBOL CETAK LAPORAN -->
+                    <button id="btnCetakWali" class="btn-primary" style="width: auto; padding: 8px 14px; background: linear-gradient(135deg, #16a34a, #15803d);" onclick="cetakLaporanWaliKelas()">
+                        <i class="fa-solid fa-file-word"></i> Cetak Word & Kirim WA
+                    </button>
+                </div>
+            
+                <!-- TABEL RESPONSIF -->
+                <div class="table-responsive" style="overflow-x: auto; width: 100%;">
+                    <table style="width: 100%; border-collapse: collapse; min-width: 500px; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid #334155; color: #38bdf8; font-size: 13px;">
+                                <th style="padding: 10px; white-space: nowrap;">Waktu & Tanggal</th>
+                                <th style="padding: 10px; white-space: nowrap;">Nama Siswa</th>
+                                <th style="padding: 10px; white-space: nowrap;">Status</th>
+                                <th style="padding: 10px; white-space: nowrap;">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listAbsensiWaliTable" style="font-size: 13px; color: #e2e8f0;">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #94a3b8; padding: 15px;">Memuat data absensi kelas...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <!-- FLOATING BOTTOM NAVIGATION BAR -->
             <div class="bottom-nav">
                 <div class="nav-item active" onclick="switchTab('Home', this)">
