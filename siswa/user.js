@@ -704,11 +704,11 @@ window.cetakLaporanWaliKelas = async function() {
 
         // Mapping ID WhatsApp/Grup berdasarkan Kelas
         const daftarGrupKelas = {
-            "XII C++": "120363112233445566@g.us",
-            "X RPL 1": "120363998877665544@g.us",
-            "XI TKJ 2": "120363223344556677@g.us"
+            "XII C++": "6283872851796",
+            "X RPL 1": "",
+            "XI TKJ 2": ""
         };
-        const nomorAdminCadangan = '6283872851796';
+        const nomorAdminCadangan = '';
         const targetWA = daftarGrupKelas[targetKelas] || nomorAdminCadangan;
 
         // Pesan Notifikasi WA
@@ -745,13 +745,6 @@ window.cetakLaporanWaliKelas = async function() {
     }
 };
 
-// Panggil fungsi di atas sebelum load model face-api
-async function loadModelsAndStartCamera() {
-    await initTensorFlowBackend(); // <--- TAMBAHKAN BARIS INI
-    
-    // Kode load model face-api Anda di sini...
-    // await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
-}
 // 11. NAVIGASI TAB BOTTOM BAR
 window.switchTab = function(tabName, el) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
