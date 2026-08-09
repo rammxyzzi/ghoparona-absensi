@@ -49,8 +49,21 @@
             <!-- TAB 1: RIWAYAT ABSENSI -->
             <div id="tabAbsensi" class="tab-content active">
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 style="font-size: 15px; color: #38bdf8;"><i class="fa-solid fa-clock-rotate-left"></i> Log Absensi Siswa</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 15px; color: #38bdf8; margin: 0;"><i class="fa-solid fa-clock-rotate-left"></i> Log Absensi Siswa</h3>
+                        
+                        <!-- TAMBAHAN FILTER WAKTU ABSENSI -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 12px; color: #94a3b8;">Filter:</label>
+                            <select id="filterAbsenAdmin" onchange="loadAbsensiData()" style="padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: white; font-size: 12px; outline: none;">
+                                <option value="semua" style="color: #000;">Semua Waktu</option>
+                                <option value="hari_ini" style="color: #000;" selected>Hari Ini</option>
+                                <option value="kemarin" style="color: #000;">Kemarin</option>
+                                <option value="bulan_ini" style="color: #000;">Bulan Ini</option>
+                                <option value="bulan_kemarin" style="color: #000;">Bulan Kemarin</option>
+                            </select>
+                        </div>
+            
                         <!-- TOMBOL CETAK WORD & KIRIM WA -->
                         <button id="btnCetakWord" class="btn-primary" style="width: auto; padding: 8px 14px; background: linear-gradient(135deg, #16a34a, #15803d);" onclick="cetakLaporanWord()">
                             <i class="fa-solid fa-file-word"></i> Cetak Word & Kirim WA
