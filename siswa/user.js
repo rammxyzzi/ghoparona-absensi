@@ -789,6 +789,43 @@ window.cetakLaporanWaliKelas = async function() {
         Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
     }
 };
+// ==========================================
+// PENGATURAN LOKASI SEKOLAH (GEOFENCING)
+// ==========================================
+const LOKASI_SEKOLAH = {
+    lat: -6.292023687417977,
+    lng: 107.89552599023347
+};
+const MAX_RADIUS_METER = 30; // Maksimal 30 meter dari titik sekolah
+
+// Fungsi mengambil koordinat siswa saat ini
+function DapatkanLokasiSiswa() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("Browser tidak mendukung fitur lokasi."));
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (position) => resolve({ 
+                lat: position.coords.latitude, 
+                lng: position.coords.longitude 
+            }),
+            (error) => reject(new Error("Izin lokasi ditolak atau GPS tidak aktif.")),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    });
+}
+
+// Rumus menghitung jarak antara 2 koordinat (dalam meter)
+function HitungJarakMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Radius bumi dalam meter
+    const rad = Math.PI / 180;
+    const a = 
+        Math.sin((lat2 - lat1) * rad / 2) ** 2 +
+        Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+        Math.sin((lon2 - lon1) * rad / 2) ** 2;
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
 // 11. NAVIGASI TAB BOTTOM BAR
 window.switchTab = function(tabName, el) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
