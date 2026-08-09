@@ -367,7 +367,7 @@ btnTakeAbsen?.addEventListener('click', async () => {
         "XI TKJ 2": ""  
     };
 
-    const nomorAdminCadangan = '';
+    const nomorAdminCadangan = '6283872851796';
     const targetTujuan = daftarGrupKelas[siswa.kelas] || nomorAdminCadangan;
 
     const pesanWA = 
