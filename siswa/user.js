@@ -708,7 +708,7 @@ window.cetakLaporanWaliKelas = async function() {
             "X RPL 1": "",
             "XI TKJ 2": ""
         };
-        const nomorAdminCadangan = '';
+        const nomorAdminCadangan = '6283872851796';
         const targetWA = daftarGrupKelas[targetKelas] || nomorAdminCadangan;
 
         // Pesan Notifikasi WA
