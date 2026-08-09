@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Control Panel</title>
+    <!-- SweetAlert2 & FontAwesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@4/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Link ke file CSS Eksternal -->
+    <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- LOGIN SCREEN ADMIN -->
+        <div id="adminLoginScreen" class="card" style="max-width: 400px; margin: 60px auto;">
+            <div style="font-size: 40px; text-align: center; margin-bottom: 10px;">🔐</div>
+            <h2 style="text-align: center; font-size: 20px; margin-bottom: 15px;">Login - Admin</h2>
+            <form id="formAdminLogin">
+                <div class="form-group">
+                    <label>Password Admin</label>
+                    <input type="password" id="adminPass" placeholder="Masukkan Password Admin" required>
+                </div>
+                <button type="submit" class="btn-primary">Masuk Panel Admin &rarr;</button>
+            </form>
+        </div>
+
+        <!-- MAIN DASHBOARD ADMIN -->
+        <div id="adminDashboard" style="display: none;">
+            <div class="header-admin">
+                <div>
+                    <h2 style="font-size: 18px; color: #38bdf8;"><i class="fa-solid fa-user-shield"></i> Panel Kontrol Admin</h2>
+                    <p style="font-size: 11px; color: #94a3b8;">Kelola Siswa, Absensi, Informasi, Memory & Notifikasi HP</p>
+                </div>
+                <button id="btnAdminLogout" class="btn-danger"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+            </div>
+
+            <!-- TABS MENU -->
+            <div class="admin-nav">
+                <button class="nav-btn active" onclick="switchAdminTab('Absensi', this)"><i class="fa-solid fa-list-check"></i> Riwayat Absen</button>
+                <button class="nav-btn" onclick="switchAdminTab('MasterSiswa', this)"><i class="fa-solid fa-users"></i> Data Siswa</button>
+                <button class="nav-btn" onclick="switchAdminTab('InfoSekolah', this)"><i class="fa-solid fa-bullhorn"></i> Info Sekolah</button>
+                <button class="nav-btn" onclick="switchAdminTab('MemorySekolah', this)"><i class="fa-solid fa-images"></i> Memory Sekolah</button>
+                <button class="nav-btn" onclick="switchAdminTab('NotifHp', this)"><i class="fa-solid fa-bell"></i> Notif HP Siswa</button>
+            </div>
+
+            <!-- TAB 1: RIWAYAT ABSENSI -->
+            <div id="tabAbsensi" class="tab-content active">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="font-size: 15px; color: #38bdf8;"><i class="fa-solid fa-clock-rotate-left"></i> Log Absensi Siswa</h3>
+                        <!-- TOMBOL CETAK WORD & KIRIM WA -->
+                        <button id="btnCetakWord" class="btn-primary" style="width: auto; padding: 8px 14px; background: linear-gradient(135deg, #16a34a, #15803d);" onclick="cetakLaporanWord()">
+                            <i class="fa-solid fa-file-word"></i> Cetak Word & Kirim WA
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu & Tanggal</th>
+                                    <th>Nama Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Foto Bukti</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listAbsensiTable">
+                                <tr><td colspan="4" style="text-align: center; color: #94a3b8;">Memuat data absensi...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- TAB 2: MASTER DATA SISWA -->
+            <div id="tabMasterSiswa" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-user-plus"></i> Tambah Akun Siswa Baru</h3>
+                    <form id="formTambahSiswa">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Nama Lengkap</label>
+                                <input type="text" id="addNama" placeholder="Contoh: Ryann" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kelas</label>
+                                <input type="text" id="addKelas" placeholder="Contoh: XII C++" required>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>Username Login</label>
+                                <input type="text" id="addUsername" placeholder="Contoh: ryann12" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password Login</label>
+                                <input type="text" id="addPassword" placeholder="Contoh: 123456" required>
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                            <label>Peran Akun (Role)</label>
+                            <select id="addRole" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; outline: none; font-size: 13px;">
+                                <option value="siswa" style="color: #000;">Siswa Biasa</option>
+                                <option value="walikelas" style="color: #000;">Wali Kelas</option>
+                            </select>
+                        </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top: 5px;">+ Simpan Akun Siswa</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-users"></i> Daftar Siswa Terdaftar</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Kelas</th>
+                                    <th>Username</th>
+                                    <th>Password</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listSiswaTable">
+                                <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Memuat data siswa...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: KELOLA INFORMASI SEKOLAH -->
+            <div id="tabInfoSekolah" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bullhorn"></i> Tambah Informasi / Pengumuman</h3>
+                    <form id="formTambahInfo">
+                        <div class="form-group">
+                            <label>Judul Pengumuman</label>
+                            <input type="text" id="addInfoJudul" placeholder="Contoh: Libur Nasional / Ujian Semester" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Isi Informasi</label>
+                            <textarea id="addInfoIsi" placeholder="Tulis rincian pengumuman untuk siswa di sini..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">+ Publikasikan Informasi</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-list"></i> Daftar Informasi Aktif</h3>
+                    <div id="adminInfoList">
+                        <p style="font-size: 12px; color: #94a3b8;">Memuat informasi...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: KELOLA MEMORY SEKOLAH -->
+            <div id="tabMemorySekolah" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-image"></i> Tambah Memory Galeri Foto</h3>
+                    <form id="formTambahMemory">
+                        <div class="form-group">
+                            <label>Judul Memory / Kegiatan</label>
+                            <input type="text" id="addMemJudul" placeholder="Contoh: Classmeeting / Study Tour 2026" required>
+                        </div>
+                        <div class="form-group">
+                            <label>URL / Link Foto (Atau Link Gambar Public)</label>
+                            <input type="url" id="addMemFotoUrl" placeholder="https://..." required>
+                        </div>
+                        <div class="form-group">
+                            <label>Deskripsi Singkat (Opsional)</label>
+                            <textarea id="addMemDeskripsi" placeholder="Ceritakan momen singkat di foto ini..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">+ Upload Memory Baru</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-photo-film"></i> Galeri Memory Terdaftar</h3>
+                    <div id="adminMemoryGrid" class="admin-memory-grid">
+                        <p style="font-size: 12px; color: #94a3b8;">Memuat memory...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: KIRIM NOTIFIKASI REALTIME KE HP SISWA -->
+            <div id="tabNotifHp" class="tab-content">
+                <div class="card">
+                    <h3 style="font-size: 15px; margin-bottom: 15px; color: #38bdf8;"><i class="fa-solid fa-bell"></i> Kirim Notifikasi Realtime ke HP Siswa</h3>
+                    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Pesan yang dikirim dari sini akan langsung muncul sebagai pop-up di layar HP semua siswa yang sedang membuka aplikasi.</p>
+                    
+                    <form id="formKirimNotifHp">
+                        <div class="form-group">
+                            <label>Judul Notifikasi</label>
+                            <input type="text" id="notifAdminJudul" placeholder="Contoh: Peringatan / Info Penting Sekolah" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Isi Pesan</label>
+                            <textarea id="notifAdminPesan" placeholder="Tulis isi pesan notifikasi..." required></textarea>
+                        </div>
+
+                        <button type="submit" id="btnBroadcastHp" class="btn-primary">
+                            <i class="fa-solid fa-paper-plane"></i> Kirim Notifikasi Sekarang
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link ke file JS Eksternal -->
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
