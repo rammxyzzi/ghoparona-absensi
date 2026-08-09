@@ -614,11 +614,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadAbsensiWaliKelas(siswaSession.kelas);
     }
 });
-
-// FUNGSI LOAD DATA ABSENSI KELAS UNTUK WALI KELAS
-async function loadAbsensiWaliKelas(kelas) {
+window.loadAbsensiWaliKelas = async function(kelas) {
     const tableBody = document.getElementById('listAbsensiWaliTable');
-    if (!tableBody) return;
+    const filterValue = document.getElementById('filterAbsenWali')?.value || 'hari_ini';
+    if (!tableBody || !kelas) return;
 
     try {
         const { data, error } = await supabase
@@ -634,18 +633,47 @@ async function loadAbsensiWaliKelas(kelas) {
             return;
         }
 
-        tableBody.innerHTML = data.map(item => `
-            <tr>
-                <td>${new Date(item.waktu).toLocaleString('id-ID')}</td>
-                <td><b>${item.nama}</b></td>
-                <td><span class="badge ${item.status === 'Hadir' ? 'badge-success' : 'badge-warning'}">${item.status || 'Hadir'}</span></td>
-                <td>${item.keterangan || 'Tepat Waktu'}</td>
+        // Logika Filter Berdasarkan Waktu
+        const now = new Date();
+        const filteredData = data.filter(item => {
+            const itemDate = new Date(item.waktu);
+            
+            if (filterValue === 'hari_ini') {
+                return itemDate.toDateString() === now.toDateString();
+            } 
+            else if (filterValue === 'kemarin') {
+                const yesterday = new Date();
+                yesterday.setDate(now.getDate() - 1);
+                return itemDate.toDateString() === yesterday.toDateString();
+            } 
+            else if (filterValue === 'bulan_ini') {
+                return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+            } 
+            else if (filterValue === 'bulan_kemarin') {
+                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
+            }
+            
+            return true; // 'semua'
+        });
+
+        if (filteredData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 15px;">Tidak ada riwayat absensi pada filter waktu ini.</td></tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = filteredData.map(item => `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 10px;">${new Date(item.waktu).toLocaleString('id-ID')}</td>
+                <td style="padding: 10px;"><b>${item.nama}</b></td>
+                <td style="padding: 10px;"><span style="color: ${item.status?.includes('Hadir') ? '#4ade80' : '#f59e0b'}; font-weight: bold;">${item.status || 'Hadir'}</span></td>
+                <td style="padding: 10px;">${item.keterangan || 'Tepat Waktu'}</td>
             </tr>
         `).join('');
 
     } catch (err) {
         console.error("Gagal memuat absensi wali kelas:", err);
-        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ef4444;">Gagal memuat data absensi.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ef4444; padding: 15px;">Gagal memuat data absensi.</td></tr>`;
     }
 }
 
