@@ -608,7 +608,7 @@ async function loadAbsensiWaliKelas(kelas) {
 
 // FUNGSI CETAK LAPORAN WORD KHUSUS WALI KELAS
 window.cetakLaporanWaliKelas = async function() {
-    const WASENDER_API_KEY = '46e8ca763fb05f8ed7008667fba6c1cb6419f9f76a92f3201d29d66e98b94a22';
+    const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
     const siswaSession = JSON.parse(localStorage.getItem('siswaSession') || '{}');
 
     if (!siswaSession || siswaSession.role !== 'walikelas') {
@@ -621,13 +621,13 @@ window.cetakLaporanWaliKelas = async function() {
 
     Swal.fire({
         title: 'Memproses Laporan...',
-        text: `Mengambil data absensi kelas ${targetKelas}...`,
+        text: `Mengambil data & mengunggah dokumen...`,
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
     });
 
     try {
-        // Query data absensi khusus kelas wali
+        // 1. Ambil Data Absensi dari Supabase
         const { data, error } = await supabase
             .from('absensi')
             .select('*')
@@ -643,7 +643,7 @@ window.cetakLaporanWaliKelas = async function() {
 
         const tanggalCetak = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-        // Buat Baris Tabel Word
+        // 2. Buat Struktur HTML Dokumen Word
         let tableRows = data.map((item, index) => `
             <tr>
                 <td style="padding: 8px; text-align: center; border: 1px solid #000;">${index + 1}</td>
@@ -690,11 +690,12 @@ window.cetakLaporanWaliKelas = async function() {
             </html>
         `;
 
-        // Download otomatis file Word
         const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword' });
+        const fileName = `Laporan_Absensi_Kelas_${targetKelas.replace(/\s+/g, '_')}_${Date.now()}.doc`;
+
+        // 3. UNDUH DOKUMEN KE PERANGKAT LOKAL
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        const fileName = `Laporan_Absensi_Kelas_${targetKelas.replace(/\s+/g, '_')}_${Date.now()}.doc`;
         a.href = url;
         a.download = fileName;
         document.body.appendChild(a);
@@ -702,49 +703,92 @@ window.cetakLaporanWaliKelas = async function() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        // Mapping ID WhatsApp/Grup berdasarkan Kelas
-        const daftarGrupKelas = {
-            "XII C++": "6283872851796",
-            "X RPL 1": "",
-            "XI TKJ 2": ""
+        // 4. UPLOAD DOKUMEN KE SUPABASE STORAGE AGAR DAPAT PUBLIC URL
+        let fileWordPublicUrl = '';
+        const { error: uploadError } = await supabase
+            .storage
+            .from('foto-absen') // Menggunakan bucket storage yang ada
+            .upload(`laporan/${fileName}`, blob, { contentType: 'application/msword' });
+
+        if (!uploadError) {
+            const { data: publicUrlData } = supabase
+                .storage
+                .from('foto-absen')
+                .getPublicUrl(`laporan/${fileName}`);
+            fileWordPublicUrl = publicUrlData.publicUrl;
+        }
+
+        // 5. MAPPING TARGET NO WA
+        const daftarNomorWA = {
+            "XII C++": "6281234567890", 
+            "X RPL 1": "6289876543210", 
+            "XI TKJ 2": "6285556667778"
         };
         const nomorAdminCadangan = '6283872851796';
-        const targetWA = daftarGrupKelas[targetKelas] || nomorAdminCadangan;
+        const targetWA = daftarNomorWA[targetKelas] || nomorAdminCadangan;
 
-        // Pesan Notifikasi WA
-        const pesanWA = 
+        // 6. SUSUN PESAN WA + LINK DOKUMEN WORD
+        let pesanWA = 
             `*📑 LAPORAN ABSENSI KELAS DICETAK*\n\n` +
             `👤 Wali Kelas: *${namaWali}*\n` +
             `🏫 Kelas: *${targetKelas}*\n` +
             `📊 Total Rekap: *${data.length} Record Absensi*\n` +
-            `📅 Tanggal Cetak: ${tanggalCetak}\n\n` +
-            `_Laporan Word (.doc) telah diunduh oleh Wali Kelas melalui dashboard user._`;
+            `📅 Tanggal Cetak: ${tanggalCetak}\n\n`;
 
-        // Kirim via WASender API
-        await fetch('https://www.wasenderapi.com/api/send-message', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${WASENDER_API_KEY}`
-            },
-            body: JSON.stringify({
-                to: targetWA,
-                text: pesanWA
-            })
-        }).catch(err => console.error('WASender API Error:', err));
+        if (fileWordPublicUrl) {
+            pesanWA += `📥 *Download File Laporan (.doc):*\n${fileWordPublicUrl}`;
+        } else {
+            pesanWA += `_File Word (.doc) telah diunduh oleh Wali Kelas._`;
+        }
 
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil Cetak & Kirim WA!',
-            text: `File laporan kelas ${targetKelas} berhasil diunduh dan notifikasi telah dikirim via WA.`
-        });
+        // 7. KIRIM PAYLOAD KE WASENDER API
+        let payloadData = {
+            to: targetWA,
+            text: pesanWA
+        };
+
+        // Jika URL berhasil didapatkan, sertakan parameter documentUrl/mediaUrl
+        if (fileWordPublicUrl) {
+            payloadData.documentUrl = fileWordPublicUrl;
+            payloadData.fileName = fileName;
+        }
+
+        let waSuccess = false;
+        try {
+            const response = await fetch('https://www.wasenderapi.com/api/send-message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${WASENDER_API_KEY}`
+                },
+                body: JSON.stringify(payloadData)
+            });
+
+            if (response.ok) waSuccess = true;
+        } catch (e) {
+            console.error('WASender Error:', e);
+        }
+
+        // 8. TAMPILKAN NOTIFIKASI HASIL
+        if (waSuccess) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Cetak & Kirim WA!',
+                text: `File laporan berhasil diunduh dan dikirimkan beserta link dokumen ke WhatsApp.`
+            });
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Laporan Berhasil Diunduh',
+                text: 'File Word berhasil diunduh. Namun notifikasi WhatsApp gagal terkirim.'
+            });
+        }
 
     } catch (err) {
         console.error("Gagal mencetak laporan Wali Kelas:", err);
         Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
     }
 };
-
 // 11. NAVIGASI TAB BOTTOM BAR
 window.switchTab = function(tabName, el) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
