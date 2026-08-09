@@ -206,9 +206,49 @@ document.getElementById('btnLogout')?.addEventListener('click', logout);
 document.getElementById('btnExit')?.addEventListener('click', logout);
 
 /// 6. BUKA KAMERA & SCAN AI
+/// 6. BUKA KAMERA & SCAN AI
 btnStartCamera?.addEventListener('click', async () => {
     try {
-        // 1. Cek dukungan browser dan ketersediaan hardware kamera
+        // --- 0. CEK LOKASI (GEOFENCING) TERLEBIH DAHULU ---
+        Swal.fire({
+            title: currentLang === 'id' ? 'Mengecek Lokasi...' : 'Checking Location...',
+            text: currentLang === 'id' ? 'Memastikan kamu berada di area sekolah.' : 'Verifying you are in the school area.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        let lokasiSiswa;
+        try {
+            lokasiSiswa = await DapatkanLokasiSiswa();
+        } catch (locErr) {
+            Swal.fire({
+                icon: 'error',
+                title: currentLang === 'id' ? 'Lokasi Tidak Aktif' : 'Location Disabled',
+                text: currentLang === 'id' ? 'Mohon izinkan akses lokasi (GPS) di browser kamu untuk absen.' : 'Please allow location (GPS) access in your browser.'
+            });
+            return; // Berhenti di sini, kamera tidak dibuka
+        }
+
+        const jarak = HitungJarakMeters(lokasiSiswa.lat, lokasiSiswa.lng, LOKASI_SEKOLAH.lat, LOKASI_SEKOLAH.lng);
+
+        if (jarak > MAX_RADIUS_METER) {
+            Swal.fire({
+                icon: 'error',
+                title: currentLang === 'id' ? 'Di Luar Area Sekolah' : 'Out of School Area',
+                text: currentLang === 'id' 
+                    ? `Kamu berada ${Math.round(jarak)} meter dari titik sekolah. Jarak maksimal untuk absen adalah ${MAX_RADIUS_METER} meter.` 
+                    : `You are ${Math.round(jarak)} meters away from school. Max radius is ${MAX_RADIUS_METER} meters.`
+            });
+            return; // Berhenti di sini, kamera tidak dibuka
+        }
+
+        // --- 1. LOKASI AMAN, LANJUT BUKA KAMERA ---
+        Swal.fire({
+            title: currentLang === 'id' ? 'Membuka Kamera...' : 'Opening Camera...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
         if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
             throw new Error("BROWSER_UNSUPPORTED");
         }
@@ -239,6 +279,7 @@ btnStartCamera?.addEventListener('click', async () => {
         
         video.onloadedmetadata = () => {
             video.play();
+            Swal.close(); // Tutup loading SweetAlert
             btnStartCamera.style.display = 'none';
             btnTakeAbsen.style.display = 'block';
 
@@ -254,6 +295,8 @@ btnStartCamera?.addEventListener('click', async () => {
 
     } catch (err) {
         console.warn("Camera Error:", err);
+        Swal.close(); // Tutup loading jika error
+        
         let errorMsg = currentLang === 'id' ? 'Mohon izinkan akses kamera di browser Anda.' : 'Please allow camera access in your browser.';
         
         if (err.message === "BROWSER_UNSUPPORTED") {
