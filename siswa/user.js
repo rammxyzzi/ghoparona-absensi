@@ -608,7 +608,7 @@ async function loadAbsensiWaliKelas(kelas) {
 
 // FUNGSI CETAK LAPORAN WORD KHUSUS WALI KELAS
 window.cetakLaporanWaliKelas = async function() {
-    const WASENDER_API_KEY = '50021fcdb8bb9825a200cbda9a944ea6bbcf4c5454e7512cf12cff23ddc9dd56';
+    const WASENDER_API_KEY = '46e8ca763fb05f8ed7008667fba6c1cb6419f9f76a92f3201d29d66e98b94a22';
     const siswaSession = JSON.parse(localStorage.getItem('siswaSession') || '{}');
 
     if (!siswaSession || siswaSession.role !== 'walikelas') {
