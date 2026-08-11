@@ -784,10 +784,10 @@ window.btnCetakWaliExcel = async function() {
 // PENGATURAN LOKASI SEKOLAH (GEOFENCING)
 // ==========================================
 const LOKASI_SEKOLAH = {
-    lat: -6.292023687417977,
-    lng: 107.89552599023347
+    lat: -6.292115,
+    lng: 107.895190
 };
-const MAX_RADIUS_METER = 30; // Maksimal 30 meter dari titik sekolah
+const MAX_RADIUS_METER = 50; // Maksimal 30 meter dari titik sekolah
 
 // Fungsi mengambil koordinat siswa saat ini
 function DapatkanLokasiSiswa() {
