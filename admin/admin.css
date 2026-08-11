@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+}
+
+body {
+    background: #0f172a;
+    background-image: radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.04), transparent 25%),
+                      radial-gradient(circle at 85% 30%, rgba(37, 99, 235, 0.04), transparent 25%);
+    color: #f8fafc;
+    min-height: 100vh;
+    padding: 20px 10px 90px 10px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Penyesuaian container untuk Admin dan User */
+.admin-container, .app-container {
+    width: 100%;
+    max-width: 800px; /* Gunakan 480px untuk app-container user jika dipisah */
+}
+
+/* Glassmorphism Premium Cards */
+.card, .header-admin {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth Input Fields */
+.form-group { margin-bottom: 16px; text-align: left; }
+.form-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 8px; font-weight: 500; }
+.form-group input, .form-group textarea, select {
+    width: 100%; 
+    padding: 12px 16px; 
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08); 
+    border-radius: 12px; 
+    color: #f8fafc; 
+    outline: none;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+.form-group input:focus, .form-group textarea:focus, select:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+    background: rgba(15, 23, 42, 0.9);
+}
+
+/* Custom Calendar Input / Date Picker */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+    transition: 0.2s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Modern Buttons */
+.btn-primary {
+    width: 100%; 
+    padding: 14px 20px; 
+    background: linear-gradient(135deg, #3b82f6, #4f46e5);
+    border: none; 
+    border-radius: 12px; 
+    color: white; 
+    font-weight: 600; 
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+    background: linear-gradient(135deg, #2563eb, #4338ca);
+}
+
+/* Table Design Modern */
+.table-responsive { width: 100%; overflow-x: auto; border-radius: 12px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; text-align: left; }
+th, td { padding: 14px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+th { background: rgba(15, 23, 42, 0.4); color: #38bdf8; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; font-size: 11px;}
+tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+/* Navigation & Tabs Smooth */
+.admin-nav { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 24px; padding-bottom: 8px; }
+.admin-nav::-webkit-scrollbar { height: 4px; }
+.admin-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.nav-btn {
+    background: transparent; border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8; padding: 12px 20px; border-radius: 12px; cursor: pointer;
+    white-space: nowrap; font-size: 13px; font-weight: 600; transition: all 0.3s;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.05); }
+.nav-btn.active { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+
+.tab-content { display: none; animation: fadeIn 0.4s ease-in-out; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
